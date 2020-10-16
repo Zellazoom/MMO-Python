@@ -32,11 +32,13 @@ enemy2_img = graphics.Enemy2.get_model()
 
 enemies = []
 enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, False, [1, 6], None)
+#enemy2 = Enemy("Enemy2", enemy1_img, "Goblin", 10, False, [20, 6], None)
 enemies.append(enemy1)
+#enemies.append(enemy2)
 
 players = []
 player1 = Player("Player", player_img, "Andrew", 12, False, [6, 6], None)
-player2 = Player("Player", player_img, "Yeet", 20, False, [7, 6], None)
+player2 = Player("Player", player_img, "Yeet", 40, False, [7, 6], None)
 #players.append(player1)
 players.append(player2)
 
@@ -45,7 +47,7 @@ item1 = Item("SPEAR", 6, True, item_img, spear_character_img, [20, 6])
 items.append(item1)
 
 
-objects = [player2, enemy1, item1]  # player1,
+objects = [player2, enemy1, item1]  # player1
 characters = [player2, enemy1] # enemy1
 
 true_scroll = [0, 0]
@@ -364,11 +366,8 @@ def if_action_attack(object):
 def pickup(person, pickup_item):
     person.get_item(pickup_item)
     pickup_item.set_on_ground = False
-    try:
-        items.remove(pickup_item)
-        objects.remove(pickup_item)
-    except:
-        print("Item is already removed")
+    items.remove(pickup_item)
+    objects.remove(pickup_item)
 
 
 def if_action_pickup(object):
@@ -381,61 +380,66 @@ def rotate_list(list, num):
     return list
 
 
-def get_player_decision(player):
+def get_player_decision():
     try:
-        if find_item_in_area(player) is not None:
-            item_to_pickup = find_item_in_area(player)
+        if find_enemy_in_area(player2) is not None:
+            enemy_to_attack = find_enemy_in_area(player2)
+            player2.set_action("ATTACK", enemy_to_attack)
+        elif len(find_enemies_by_range(player2)) != 0:
+            target = find_enemies_by_range(player2)
+            player2.set_action("MOVE", target[0].get_position())
+
+        elif find_item_in_area(player2) is not None:
+            item_to_pickup = find_item_in_area(player2)
             player2.set_action("PICKUP", item_to_pickup)
 
-        elif player.get_equiped_item() is None and len(player.get_inventory()) != 0:
-            player.set_item(player.get_inventory()[0])
+        elif player2.get_equiped_item() is None and len(player2.get_inventory()) != 0:
+            player2.set_item(player2.get_inventory()[0])
 
-        elif len(find_items_by_range(player)) != 0:
-            target = find_items_by_range(player)
-            player.set_action("MOVE", target[0].get_position())
-
-        elif find_enemy_in_area(player) is not None:
-            enemy_to_attack = find_enemy_in_area(player)
-            player.set_action("ATTACK", enemy_to_attack)
-
-        elif len(find_enemies_by_range(player)) != 0:
-            target = find_enemies_by_range(player)
-            player.set_action("MOVE", target[0].get_position())
-
-        # elif find_item_in_area(player) is not None:
-        #     item_to_pickup = find_item_in_area(player)
-        #     player2.set_action("PICKUP", item_to_pickup)
-        #
-        # elif player.get_equiped_item() is None and len(player.get_inventory()) != 0:
-        #     player.set_item(player.get_inventory()[0])
-
-        # elif len(find_items_by_range(player)) != 0:
-        #     target = find_items_by_range(player)
-        #     player.set_action("MOVE", target[0].get_position())
+        elif len(find_items_by_range(player2)) != 0:
+            target = find_items_by_range(player2)
+            player2.set_action("MOVE", target[0].get_position())
 
         else:
-            player.set_action("STAY", player.get_position())
+            player2.set_action("STAY", player2.get_position())
 
-        return player.get_action()
+        return player2.get_action()
     except:
         print("Object is dead")
 
 
 def get_enemy_decision(enemy):
-    try:
-        if find_enemy_in_area(enemy) is not None:
-            enemy_to_attack = find_enemy_in_area(enemy)
-            enemy.set_action("ATTACK", enemy_to_attack)
-        elif len(find_enemies_by_range(enemy)) != 0:
-            target = find_enemies_by_range(enemy)
-            enemy.set_action("MOVE", target[0].get_position())
-        else:
-            enemy.set_action("STAY", enemy.get_position())
+    if enemy.get_identifier() == 'Enemy1':
+        try:
+            if find_enemy_in_area(enemy1) is not None:
+                enemy_to_attack = find_enemy_in_area(enemy1)
+                enemy1.set_action("ATTACK", enemy_to_attack)
+            elif len(find_enemies_by_range(enemy1)) != 0:
+                target = find_enemies_by_range(enemy1)
+                enemy1.set_action("MOVE", target[0].get_position())
+            else:
+                enemy1.set_action("STAY", enemy1.get_position())
 
-        return enemy.get_action()
+            return enemy1.get_action()
 
-    except:
-        print("Object is dead")
+        except:
+            print("Object is dead")
+
+    # elif enemy.get_identifier() == 'Enemy2':
+    #     try:
+    #         if find_enemy_in_area(enemy2) is not None:
+    #             enemy_to_attack = find_enemy_in_area(enemy2)
+    #             enemy2.set_action("ATTACK", enemy_to_attack)
+    #         elif len(find_enemies_by_range(enemy2)) != 0:
+    #             target = find_enemies_by_range(enemy2)
+    #             enemy2.set_action("MOVE", target[0].get_position())
+    #         else:
+    #             enemy2.set_action("STAY", enemy1.get_position())
+    #
+    #         return enemy2.get_action()
+    #
+    #     except:
+    #         print("Object is dead")
 
 # Set up
 counter = 0
@@ -445,6 +449,43 @@ while True:
     display.fill((146, 244, 255))
 
     # BOT PROCESS CODE
+    # try:
+    #     if find_enemy_in_area(player2) is not None:
+    #         enemy_to_attack = find_enemy_in_area(player2)
+    #         player2.set_action("ATTACK", enemy_to_attack)
+    #     elif len(find_enemies_by_range(player2)) != 0:
+    #         target = find_enemies_by_range(player2)
+    #         player2.set_action("MOVE", target[0].get_position())
+    #
+    #     elif find_item_in_area(player2) is not None:
+    #         item_to_pickup = find_item_in_area(player2)
+    #         player2.set_action("PICKUP", item_to_pickup)
+    #
+    #     elif player2.get_equiped_item() is None and len(player2.get_inventory()) != 0:
+    #         player2.set_item(player2.get_inventory()[0])
+    #
+    #     elif len(find_items_by_range(player2)) != 0:
+    #         target = find_items_by_range(player2)
+    #         player2.set_action("MOVE", target[0].get_position())
+    #
+    #     else:
+    #         player2.set_action("STAY", player2.get_position())
+    # except:
+    #     print("Object is dead")
+
+    # try:
+    #     if find_enemy_in_area(enemy1) is not None:
+    #         enemy_to_attack = find_enemy_in_area(enemy1)
+    #         enemy1.set_action("ATTACK", enemy_to_attack)
+    #     elif len(find_enemies_by_range(enemy1)) != 0:
+    #         target = find_enemies_by_range(enemy1)
+    #         enemy1.set_action("MOVE", target[0].get_position())
+    #     else:
+    #         enemy1.set_action("STAY", enemy1.get_position())
+    #
+    # except:
+    #     print("Object is dead")
+
     # END BOT PROCESS CODE
 
     # true_scroll[0] += ((player1.get_rect().x + player2.get_rect().x)/2 - true_scroll[0] - 152) / 20
@@ -476,7 +517,7 @@ while True:
     if counter % FPS == 0:  # Main Desicion Code here
         for character in characters:
             if isinstance(character, Player):
-                get_player_decision(character)
+                get_player_decision()
             if isinstance(character, Enemy):
                 get_enemy_decision(character)
             object_position = character.get_position()
@@ -517,17 +558,43 @@ while True:
                 new_x, new_y = item.get_position()
                 game_map[new_y][new_x] = 4
             else:
-                pass
-                # try:
-                #     items.remove(item)
-                #     objects.remove(item)
-                # except:
-                #     print("Already Removed")
+                items.remove(item)
+                objects.remove(item)
 
 
 
         turn_count += 1
         counter = 0
+
+    # game_map = load_map('map')
+    # for player in players:
+    #     if player.is_dead:
+    #         players.remove(player)
+    #         characters.remove(player)
+    #         objects.remove(player)
+    #     else:
+    #         display.blit(player.get_image(), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
+    #         new_x, new_y = player.get_position()
+    #         game_map[new_y][new_x] = 2
+    #
+    # for enemy in enemies:
+    #     if enemy.is_dead:
+    #         enemies.remove(enemy)
+    #         characters.remove(enemy)
+    #         objects.remove(enemy)
+    #     else:
+    #         display.blit(enemy.get_image(), (enemy.get_rect().x - scroll[0], enemy.get_rect().y - scroll[1]))
+    #         new_x, new_y = enemy.get_position()
+    #         game_map[new_y][new_x] = 3
+    #
+    # for item in items:
+    #     if item.on_ground():
+    #         display.blit(item.get_image(), (item.get_rect().x - scroll[0], item.get_rect().y - scroll[1]))
+    #         new_x, new_y = item.get_position()
+    #         game_map[new_y][new_x] = 4
+    #     else:
+    #         items.remove(item)
+    #         objects.remove(item)
 
     # Add item code
     for all_objects in objects:

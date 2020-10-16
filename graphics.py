@@ -1,12 +1,11 @@
 import pygame, os
 
 # The number of frames the longest animation has
-animationFrames = 10
-
+animationFrames = 12
 
 class Graphics:
 
-    # Initialization
+    # Initialization method
     # Arguments:
     #    graphicsDirectory: file path to Graphics folder, ex) 'D:\Python Game\Graphics'
     def __init__(self, graphicsDirectory, display, fps):
@@ -19,6 +18,11 @@ class Graphics:
             self.assign_images('Player', 'Walk'),
             self.assign_images('Player', 'Left Attack'),
             self.assign_images('Player', 'Right Attack'))
+
+        self.Player.add_player_weapon_animations("Spear",
+            self.assign_images('Player', 'SpearWalk'),
+            self.assign_images('Player', 'SpearLeft Attack'),
+            self.assign_images('Player', 'SpearRight Attack'))
 
         self.Enemy1 = CharacterGraphics('Enemy1',
             pygame.image.load(os.path.join(self.graphicsDirectory, "Models", 'Enemy1.png')).convert_alpha(),
@@ -50,24 +54,31 @@ class Graphics:
         # Code for the animations to work
         if counter_two % int(self.fps / animationFrames) == 0:
             for player in players:
+                item = ''
+                action = ''
+
                 if player.get_action()[0] == "MOVE" and not find_enemy_in_area(player):  # Needs 4
-                    player.set_image(self.Player.get_animation_frame("walk", int(1 + (counter_two % self.fps) / (self.fps / animationFrames))))
-                    self.display.blit(player.get_image(), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
+                    action = 'Walk'
                 elif player.get_action()[0] == "ATTACK":
-                    attack_direction = 'Right Attack'
+                    action = 'Right Attack'
                     if (player.get_action()[1].get_position()[0] - player.get_position()[0]) == -1:
-                        attack_direction = 'Left Attack'
-                    player.set_image(self.Player.get_animation_frame(attack_direction, int(1 + (counter_two % self.fps) / (self.fps / animationFrames))))
-                    self.display.blit(player.get_image(), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
+                        action = 'Left Attack'
+
                 else:
                     try:
                         player_current_image = (player.get_equiped_item()).get_player_image()
                         player.set_image(player_current_image)
-                        self.display.blit(player.get_image(),
-                                     (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
                     except:
                         player.set_image(self.Player.get_model())
-                        self.display.blit(player.get_image(), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
+
+                if (player.get_action()[0] == "MOVE"and not find_enemy_in_area(player)) or player.get_action()[0] == "ATTACK":
+                    if player.get_equiped_item() is not None:
+                        item = str(player.get_equiped_item().get_name())
+
+                    player.set_image(self.Player.get_animation_frame(item + action, int(
+                        1 + (counter_two % self.fps) / (self.fps / animationFrames))))
+
+                self.display.blit(player.get_image(), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
 
             for enemy in enemies:
                 action = ''
@@ -92,6 +103,9 @@ class CharacterGraphics:
         self.walk_animation = walk_animation
         self.left_attack_animation = left_attack_animation
         self.right_attack_animation = right_attack_animation
+        self.spear_walk_animation = None
+        self.spear_left_attack_animation = None
+        self.spear_right_attack_animation = None
 
     def get_name(self):
         return self.name
@@ -99,6 +113,17 @@ class CharacterGraphics:
     # Returns character model image
     def get_model(self):
         return self.model
+
+    # Returns character model image
+    def update_model(self, image):
+        self.model = image
+
+    # 'Spear'
+    def add_player_weapon_animations(self, weapon, spear_walk_animation, spear_left_attack_animation, spear_right_attack_animation):
+        if weapon.lower() == 'spear':
+            self.spear_walk_animation = spear_walk_animation
+            self.spear_left_attack_animation = spear_left_attack_animation
+            self.spear_right_attack_animation = spear_right_attack_animation
 
     # Returns list of frames in character animation
     # Arguments:
@@ -111,6 +136,12 @@ class CharacterGraphics:
             return self.left_attack_animation
         elif action == 'rightattack':
             return self.right_attack_animation
+        elif action == 'spearwalk':
+            return self.spear_walk_animation
+        elif action == 'spearleftattack':
+            return self.spear_left_attack_animation
+        elif action == 'spearrightattack':
+            return self.spear_right_attack_animation
 
     # Returns a specific frame image from an animation
     # Arguments:
@@ -124,3 +155,9 @@ class CharacterGraphics:
             return self.left_attack_animation[frame_number - 1]
         elif action == 'rightattack':
             return self.right_attack_animation[frame_number - 1]
+        elif action == 'spearwalk':
+            return self.spear_walk_animation[frame_number - 1]
+        elif action == 'spearleftattack':
+            return self.spear_left_attack_animation[frame_number - 1]
+        elif action == 'spearrightattack':
+            return self.spear_right_attack_animation[frame_number - 1]
