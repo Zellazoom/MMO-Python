@@ -32,13 +32,13 @@ enemy2_img = graphics.Enemy2.get_model()
 
 enemies = []
 enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, False, [1, 6], None)
-enemy2 = Enemy("Enemy2", enemy1_img, "ENEMY", 20, False, [30, 6], None)
+enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, False, [30, 6], None)
 enemies.append(enemy1)
 enemies.append(enemy2)
 
 players = []
 player1 = Player("Player", player_img, "Andrew", 12, False, [6, 6], None)
-player2 = Player("Player", player_img, "Yeet", 40, False, [7, 6], None)
+player2 = Player("Player", player_img, "Yeet", 30, False, [7, 6], None)
 #players.append(player1)
 players.append(player2)
 
