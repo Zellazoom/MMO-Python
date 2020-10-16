@@ -7,9 +7,15 @@ class Item(pygame.sprite.Sprite):
         self.name = name
         self.damage = damage
         self.is_on_ground = is_on_ground
-        self.rect = pygame.Rect(position[0] * 16, position[1] * 16, 16, 16)
         self.image = image
         self.player_image = player_image
+        self.position = position
+        self.rect = pygame.Rect(self.position[0] * 16, self.position[1] * 16, 16, 16)
+
+    def get_position(self):
+        return self.position
+
+    def set_position(self, position):
         self.position = position
 
     def set_name(self, name):
@@ -29,6 +35,7 @@ class Item(pygame.sprite.Sprite):
 
     def set_on_ground(self, value):
         self.is_on_ground = value
+        self.rect = pygame.Rect(self.position[0] * 16, self.position[1] * 16, 16, 16)
 
     def get_rect(self):
         return self.rect
@@ -48,8 +55,4 @@ class Item(pygame.sprite.Sprite):
     def set_player_image(self, player_image):
         self.player_image = player_image
 
-    def get_position(self):
-        return self.position
 
-    def set_position(self, position):
-        self.position = position
