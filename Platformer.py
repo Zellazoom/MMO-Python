@@ -476,7 +476,7 @@ while True:
     if counter % FPS == 0:  # Main Desicion Code here
         for character in characters:
             if isinstance(character, Player):
-                get_player_decision()
+                get_player_decision(character)
             if isinstance(character, Enemy):
                 get_enemy_decision(character)
             object_position = character.get_position()
