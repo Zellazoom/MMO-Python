@@ -32,7 +32,9 @@ enemy2_img = graphics.Enemy2.get_model()
 
 enemies = []
 enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, False, [1, 6], None)
+enemy2 = Enemy("Enemy2", enemy1_img, "ENEMY", 20, False, [30, 6], None)
 enemies.append(enemy1)
+enemies.append(enemy2)
 
 players = []
 player1 = Player("Player", player_img, "Andrew", 12, False, [6, 6], None)
@@ -45,8 +47,8 @@ item1 = Item("SPEAR", 6, True, item_img, spear_character_img, [20, 6])
 items.append(item1)
 
 
-objects = [player2, enemy1, item1]  # player1
-characters = [player2, enemy1] # enemy1
+objects = [player2, enemy1, enemy2, item1]  # player1
+characters = [player2, enemy1, enemy2] # enemy1
 
 true_scroll = [0, 0]
 
@@ -385,7 +387,7 @@ def get_player_decision(player):
     try:
         if find_item_in_area(player) is not None:
             item_to_pickup = find_item_in_area(player)
-            player2.set_action("PICKUP", item_to_pickup)
+            player.set_action("PICKUP", item_to_pickup)
 
         elif player.get_equiped_item() is None and len(player.get_inventory()) != 0:
             player.set_item(player.get_inventory()[0])
