@@ -40,7 +40,7 @@ items.append(item1)
 
 enemies = []
 enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, False, [1, 6], item2)
-enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, False, [30, 6], None)
+enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, False, [20, 6], None)
 enemies.append(enemy1)
 enemies.append(enemy2)
 
@@ -348,11 +348,13 @@ def if_action_attack(object):
                 # Drop Equipped Item
                 try:
                     if attacked.get_equipped_item() is not None:
-                        the_item = attacked.get_equipped_item()
-                        the_item.set_position(attacked.get_position())
-                        items.append(the_item)
-                        objects.append(the_item)
-                        attacked.drop_item(the_item)
+                        dropped_item = copy(attacked.get_equipped_item())
+                        attacked.drop_item(dropped_item)
+                        dropped_item.set_position(attacked.get_position())
+                        dropped_item.set_on_ground(True)
+
+                        items.append(dropped_item)
+                        objects.append(dropped_item)
                 except:
                     print("Something happened")
 
@@ -361,6 +363,8 @@ def if_action_attack(object):
                 objects.remove(attacked)
             except:
                 pass
+
+
         if isinstance(attacked, Enemy):
 
             try:
@@ -391,7 +395,7 @@ def if_action_attack(object):
 
 def pickup(person, pickup_item):
     person.get_item(pickup_item)
-    pickup_item.set_on_ground = False
+    pickup_item.set_on_ground(False)
     try:
         items.remove(pickup_item)
         objects.remove(pickup_item)
