@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Character:
-    def __init__(self, identifier, image, name, health, is_dead, position, item, starting_xp, death_xp):
+    def __init__(self, identifier, image, name, health, speed, is_dead, position, item, starting_xp, death_xp):
         self.identifier = identifier
         self.name = name
         self.image = image
@@ -14,6 +14,7 @@ class Character:
         self.inventory = []
         self.damage = 4
         self.health = health
+        self.speed = speed
         self.type = "MOVE"
         self.value = [0, 0]
 
@@ -65,9 +66,21 @@ class Character:
             self.health = 0
             self.is_dead = True
 
+    def get_speed(self):
+        return self.speed
+
+    def set_speed(self, speed):
+        self.speed = speed
+
     def get_damage(self):
         if self.item is not None:
-            return self.item.get_damage()
+            item_damage = self.item.get_damage()
+            if self.item.get_magic_type() == "DAMAGE":
+                magic_damage = self.item.get_magic()[1]
+            else:
+                magic_damage = 0
+
+            return item_damage + magic_damage
         else:
             return self.damage
 
@@ -81,6 +94,8 @@ class Character:
     def get_position(self):
         return self.position
 
+
+    # Works with items and inventory
     def get_item(self, item):
         self.inventory.append(item)
 
@@ -121,6 +136,8 @@ class Character:
         return self.death_xp
 
     def update(self):
+
+
         pass  # Stuff that can happen every round for later use like health regen or something
         # Try two Ways for magical stuff:
         # 1) put code in constructor of item

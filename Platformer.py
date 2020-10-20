@@ -39,20 +39,19 @@ enemy2_img = graphics.Enemy2.get_model()
 
 
 items = []
-item1 = Item("SPEAR", 6, True, item_img, spear_character_img, [10, 6])
-item2 = Item("SPEAR2", 6, False, item_img, spear_character_img, [0, 0])
-print(item2.is_on_ground)
+item1 = Item("SPEAR", "WEAPON", 6, True, item_img, spear_character_img, [10, 6], ["DAMAGE", 100])
+item2 = Item("SPEAR2","WEAPON", 6, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
 items.append(item1)
 
 enemies = []
-enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, False, [1, 6], item2, 0, 20)
-enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, False, [20, 6], None, 0, 10)
+enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, 1, False, [1, 6], item2, 0, 20)
+enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, 1, False, [30, 6], None, 0, 10)
 enemies.append(enemy1)
 enemies.append(enemy2)
 
 players = []
-player1 = Player("Player", player_img, "Andrew", 12, False, [6, 6], None, 0, 20)
-player2 = Player("Player", player_img, "Yeet", 40, False, [7, 6], None, 99, 20)
+player1 = Player("Player", player_img, "Andrew", 12, 1, False, [6, 6], None, 0, 20)
+player2 = Player("Player", player_img, "Yeet", 40, 2, False, [7, 6], None, 99, 20)
 #players.append(player1)
 players.append(player2)
 
@@ -60,6 +59,8 @@ objects = [player2, enemy1, enemy2, item1]  # player1
 characters = [player2, enemy1, enemy2]  # enemy1
 
 true_scroll = [0, 0]
+
+speed = 2
 
 
 def get_map_dimensions(path):
@@ -295,7 +296,7 @@ def find_item_in_area(person):
         return None
 
 
-def get_list_of_movement(player_pos, path_coords):  # , set_dest
+def get_list_of_movement(player_pos, path_coords):
     list_of_movement = []
     for coord in path_coords[1:]:
         diff = [coord[0] - player_pos[0], coord[1] - player_pos[1]]
@@ -509,57 +510,81 @@ while True:
     if counter % FPS == 0:  # Main Desicion Code here
         for character in characters:
             character.update()
-        for character in characters:
-
+        for character in characters:  # For loop after this can double action
+            # Testing speed
             if isinstance(character, Player):
                 get_player_decision(character)
+
             if isinstance(character, Enemy):
                 get_enemy_decision(character)
-            object_position = character.get_position()
-            type_of_action, value = character.get_action()
-            print(character.get_name() + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_health()))
 
-            if type_of_action == "ATTACK":
-                if_action_attack(character)
-            if type_of_action == "MOVE":
-                if_action_move(game_map, character)
-            if type_of_action == "PICKUP":
-                if_action_pickup(character)
-            if type_of_action == "EQUIP":
-                if_action_equip(character)
-
-            game_map = load_map('map')
-            if isinstance(character, Player):
-                if character.is_dead:
-                    players.remove(character)
-                    characters.remove(character)
-                    objects.remove(character)
+            turn_range = 1
+            if character.get_action()[0] == "MOVE" and character.get_speed() > 1:
+                path_2 = bfs(game_map_clean, character.get_position(), character.get_action()[1])
+                print(path_2)
+                turn_range = len(path_2)
+                if turn_range >= character.get_speed():
+                    turn_range = character.get_speed()
                 else:
-                    display.blit(character.get_image(), (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
-                    new_x, new_y = character.get_position()
-                    game_map[new_y][new_x] = 2
+                    turn_range = turn_range
 
-            if isinstance(character, Enemy):
-                if character.is_dead:
-                    enemies.remove(character)
-                    characters.remove(character)
-                    objects.remove(character)
-                else:
-                    display.blit(character.get_image(), (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
-                    new_x, new_y = character.get_position()
-                    game_map[new_y][new_x] = 3
+            print('Turn range: ' + str(turn_range))
+            for i in range(turn_range):
+                if isinstance(character, Player):
+                    get_player_decision(character)
 
-            for item in items:
-                if item.on_ground():
-                    display.blit(item.get_image(), (item.get_rect().x - scroll[0], item.get_rect().y - scroll[1]))
-                    new_x, new_y = item.get_position()
-                    game_map[new_y][new_x] = 4
-                else:
-                    try:
-                        items.remove(item)
-                        objects.remove(item)
-                    except:
-                        pass
+                if isinstance(character, Enemy):
+                    get_enemy_decision(character)
+
+                object_position = character.get_position()
+                type_of_action, value = character.get_action()
+                print(character.get_name() + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_health()))
+
+                if type_of_action == "ATTACK":
+                    if_action_attack(character)
+                if type_of_action == "MOVE":
+                    if_action_move(game_map, character)
+                if type_of_action == "PICKUP":
+                    if_action_pickup(character)
+                if type_of_action == "EQUIP":
+                    if_action_equip(character)
+
+                game_map = load_map('map')
+                if isinstance(character, Player):
+                    if character.is_dead:
+                        players.remove(character)
+                        characters.remove(character)
+                        objects.remove(character)
+                    else:
+                        display.blit(character.get_image(), (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
+                        new_x, new_y = character.get_position()
+                        game_map[new_y][new_x] = 2
+
+                if isinstance(character, Enemy):
+                    if character.is_dead:
+                        enemies.remove(character)
+                        characters.remove(character)
+                        objects.remove(character)
+                    else:
+                        display.blit(character.get_image(), (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
+                        new_x, new_y = character.get_position()
+                        game_map[new_y][new_x] = 3
+
+                for item in items:
+                    if item.on_ground():
+                        display.blit(item.get_image(), (item.get_rect().x - scroll[0], item.get_rect().y - scroll[1]))
+                        new_x, new_y = item.get_position()
+                        game_map[new_y][new_x] = 4
+                    else:
+                        try:
+                            items.remove(item)
+                            objects.remove(item)
+                        except:
+                            pass
+
+                for all_objects in objects:
+                    display.blit(all_objects.get_image(),
+                                 (all_objects.get_rect().x - scroll[0], all_objects.get_rect().y - scroll[1]))
         turn_count += 1
         counter = 0
 
