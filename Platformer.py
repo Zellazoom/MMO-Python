@@ -22,9 +22,10 @@ img_folder = os.path.join(game_folder, 'images')
 graphics_folder = os.path.join(game_folder, 'Graphics')
 music_folder = os.path.join(game_folder, 'music')
 
-pygame.mixer.init()
-pygame.mixer.music.load(os.path.join(music_folder, 'GameMusic_1.mp3'))
-pygame.mixer.music.play(-1, 0.0)
+# Gets the basic game music going (Commented Cause Im listening to music. Uncomment if forgotten)
+# pygame.mixer.init()
+# pygame.mixer.music.load(os.path.join(music_folder, 'GameMusic_1.mp3'))
+# pygame.mixer.music.play(-1, 0.0)
 
 graphics = Graphics(graphics_folder, display, FPS)
 
@@ -44,20 +45,19 @@ print(item2.is_on_ground)
 items.append(item1)
 
 enemies = []
-enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, False, [1, 6], item2)
-enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, False, [20, 6], None)
+enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, False, [1, 6], item2, 0, 20)
+enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, False, [20, 6], None, 0, 10)
 enemies.append(enemy1)
 enemies.append(enemy2)
 
 players = []
-player1 = Player("Player", player_img, "Andrew", 12, False, [6, 6], None)
-player2 = Player("Player", player_img, "Yeet", 30, False, [7, 6], None)
+player1 = Player("Player", player_img, "Andrew", 12, False, [6, 6], None, 0, 20)
+player2 = Player("Player", player_img, "Yeet", 40, False, [7, 6], None, 99, 20)
 #players.append(player1)
 players.append(player2)
 
-
 objects = [player2, enemy1, enemy2, item1]  # player1
-characters = [player2, enemy1, enemy2] # enemy1
+characters = [player2, enemy1, enemy2]  # enemy1
 
 true_scroll = [0, 0]
 
@@ -338,8 +338,7 @@ def if_action_move(game_map_temp, object):
 
 def attack(attacker, attacked):
     damage = attacker.get_damage()
-    health = attacked.get_health()
-    attacked.set_health((health - damage))
+    attacked.add_health(-damage)
 
 
 def if_action_attack(object):
@@ -348,6 +347,7 @@ def if_action_attack(object):
 
     if attacked.is_dead:
         if isinstance(attacked, Player):
+            object.add_xp(attacked.get_death_xp())
             try:
                 print(attacked.get_name() + " IS DEAD+++++++++++++++")
                 # Drop Equipped Item
@@ -371,7 +371,7 @@ def if_action_attack(object):
 
 
         if isinstance(attacked, Enemy):
-
+            object.add_xp(attacked.get_death_xp())
             try:
                 # Drop Equipped Item
                 try:
@@ -508,13 +508,16 @@ while True:
 
     if counter % FPS == 0:  # Main Desicion Code here
         for character in characters:
+            character.update()
+        for character in characters:
+
             if isinstance(character, Player):
                 get_player_decision(character)
             if isinstance(character, Enemy):
                 get_enemy_decision(character)
             object_position = character.get_position()
             type_of_action, value = character.get_action()
-            print(character.get_name() + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_health()))
+            print(character.get_name() + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_health()))
 
             if type_of_action == "ATTACK":
                 if_action_attack(character)

@@ -1,8 +1,9 @@
 import pygame
+import numpy as np
 
 
 class Character:
-    def __init__(self, identifier, image, name, health, is_dead, position, item):
+    def __init__(self, identifier, image, name, health, is_dead, position, item, starting_xp, death_xp):
         self.identifier = identifier
         self.name = name
         self.image = image
@@ -15,7 +16,18 @@ class Character:
         self.health = health
         self.type = "MOVE"
         self.value = [0, 0]
-        self.xp = 0
+
+        self.death_xp = death_xp  # Amount of xp that is dropped when they are killed
+        self.character_xp = starting_xp
+        if self.character_xp < 100:
+            self.current_rank = 0
+            self.next_xp_rank = 100
+        else:
+            self.current_rank = int(np.log(self.character_xp/100)/np.log(2)) + 1
+        self.next_rank = self.current_rank + 1
+
+
+
 
     def set_identifier(self, identifier):
         self.identifier = identifier
@@ -47,12 +59,11 @@ class Character:
     def get_health(self):
         return self.health
 
-    def set_health(self, health):
-        if health <= 0:
+    def add_health(self, added_health):
+        self.health += added_health
+        if self.health <= 0:
             self.health = 0
             self.is_dead = True
-        else:
-            self.health = health
 
     def get_damage(self):
         if self.item is not None:
@@ -91,8 +102,23 @@ class Character:
         else:
             pass
 
+
+    # XP RANKING METHODS
     def get_xp(self):
-        return self.xp
+        return self.character_xp
+
+    def get_rank(self):
+        return self.current_rank
 
     def add_xp(self, num):
-        self.xp += num
+        self.character_xp += num
+        if self.character_xp < 100:
+            self.current_rank = 1
+        if self.character_xp >= 100:
+            self.current_rank = int(np.log(self.character_xp / 100) / np.log(2)) + 1
+
+    def get_death_xp(self):
+        return self.death_xp
+
+    def update(self):
+        pass  # Stuff that can happen every round for later use like health regen or something
