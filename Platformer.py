@@ -20,6 +20,11 @@ display = pygame.Surface((600, 400))  # used as the surface for rendering, which
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, 'images')
 graphics_folder = os.path.join(game_folder, 'Graphics')
+music_folder = os.path.join(game_folder, 'music')
+
+pygame.mixer.init()
+pygame.mixer.music.load(os.path.join(music_folder, 'GameMusic_1.mp3'))
+pygame.mixer.music.play(-1, 0.0)
 
 graphics = Graphics(graphics_folder, display, FPS)
 
@@ -301,20 +306,20 @@ def get_list_of_movement(player_pos, path_coords):  # , set_dest
 
 
 # END CODE FOR PLAYER TO CALL
-def if_action_move(game_map, object):
-    object_position = object.get_position()
-    value = object.get_action()[1]
+def if_action_move(game_map_temp, object):
+    current_position = object.get_position()
+    value_of_action = object.get_action()[1]
     object_rect = object.get_rect()
-    if object_position != value:
-        list_of_positions = bfs(game_map, object_position, value)
+    if current_position != value_of_action:
+        list_of_positions = bfs(game_map_temp, current_position, value_of_action)
         if list_of_positions != -1:
-            list_of_movement = get_list_of_movement(object_position, list_of_positions)
+            list_of_movement = get_list_of_movement(current_position, list_of_positions)
             if len(list_of_movement) != 0:
-                new_coords = [object_position[0] + list_of_movement[0][0], object_position[1] + list_of_movement[0][1]]
+                new_coords = [current_position[0] + list_of_movement[0][0], current_position[1] + list_of_movement[0][1]]
                 if check_open_square(new_coords):
                     object_new_pos = list_of_movement[0]
                     object.set_position(new_coords)
-                    object_rect, collisions = move(object_rect, object_new_pos, tile_rects)  # , collisions
+                    object_rect, collisions = move(object_rect, object_new_pos, tile_rects)
 
                     object.set_rect(object_rect)
                     list_of_movement.remove(list_of_movement[0])
