@@ -23,9 +23,9 @@ graphics_folder = os.path.join(game_folder, 'Graphics')
 music_folder = os.path.join(game_folder, 'music')
 
 # Gets the basic game music going (Commented Cause Im listening to music. Uncomment if forgotten)
-pygame.mixer.init()
-pygame.mixer.music.load(os.path.join(music_folder, 'GameMusic_1.mp3'))
-pygame.mixer.music.play(-1, 0.0)
+# pygame.mixer.init()
+# pygame.mixer.music.load(os.path.join(music_folder, 'GameMusic_1.mp3'))
+# pygame.mixer.music.play(-1, 0.0)
 
 graphics = Graphics(graphics_folder, display, FPS)
 

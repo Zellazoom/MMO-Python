@@ -122,3 +122,6 @@ class Character:
 
     def update(self):
         pass  # Stuff that can happen every round for later use like health regen or something
+        # Try two Ways for magical stuff:
+        # 1) put code in constructor of item
+        # 2) set certain properties like damage_buff, healing_buff, speed_buff, and stuff
