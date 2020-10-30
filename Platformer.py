@@ -45,14 +45,14 @@ item2 = Item("SPEAR2","WEAPON", 6, 90, False, item_img, spear_character_img, [0,
 items.append(item1)
 
 enemies = []
-enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, 1, False, [1, 6], item2, 0, 20)
-enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, 1, False, [30, 6], None, 0, 10)
+enemy1 = Enemy("Enemy1", enemy1_img, "Chad", 10, 1, -1, 1, 1, False, [1, 6], item2, 0, 20)
+enemy2 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 2, -2, 1, False, [30, 6], None, 0, 10)
 enemies.append(enemy1)
 enemies.append(enemy2)
 
 players = []
-player1 = Player("Player", player_img, "Andrew", 12, 1, False, [6, 6], None, 0, 20)
-player2 = Player("Player", player_img, "Yeet", 40, 2, False, [7, 6], None, 99, 20)
+player1 = Player("Player", player_img, "Andrew", 12, -1, 0, -1, 1, False, [6, 6], None, 0, 20)
+player2 = Player("Player", player_img, "Yeet", 30, -1, 0, -1, 2, False, [7, 6], None, 99, 20)
 #players.append(player1)
 players.append(player2)
 
@@ -362,16 +362,18 @@ def attack(attacker, attacked):
 def if_action_attack(object):
     action, attacked = object.get_action()
     attack(object, attacked)
+    initial_rank = object.get_rank()
 
     if attacked.is_dead:
         if isinstance(attacked, Player):
             object.add_xp(attacked.get_death_xp())
+
             try:
                 print(attacked.get_name() + " IS DEAD+++++++++++++++")
                 # Drop Equipped Item
                 try:
-                    if attacked.get_equipped_weapon() is not None:
-                        dropped_item = copy(attacked.get_equipped_weapon())
+                    if attacked.get_equipped_item() is not None:
+                        dropped_item = copy(attacked.get_equipped_item())
                         attacked.drop_item(dropped_item)
                         dropped_item.set_position(attacked.get_position())
                         dropped_item.set_on_ground(True)
@@ -393,8 +395,8 @@ def if_action_attack(object):
             try:
                 # Drop Equipped Item
                 try:
-                    if attacked.get_equipped_weapon() is not None:
-                        dropped_item = copy(attacked.get_equipped_weapon())
+                    if attacked.get_equipped_item() is not None:
+                        dropped_item = copy(attacked.get_equipped_item())
                         attacked.drop_item(dropped_item)
                         dropped_item.set_position(attacked.get_position())
                         dropped_item.set_on_ground(True)
@@ -412,6 +414,23 @@ def if_action_attack(object):
                 pass
         else:
             pass
+        # level up code
+        if object.get_rank() > initial_rank:
+            print(object.get_name() + " leveled up!")
+            object.add_health(2)
+            print("+2 Max Health")
+            increased_stat = random.randint(1, 3)
+            if increased_stat == 1:
+                object.add_accuracy(1)
+                print("+1 Accuracy")
+            elif increased_stat == 2:
+                object.add_agility(1)
+                print("+1 Agility")
+            else:
+                object.add_attack(1)
+                print("+1 Attack")
+            object.print_stats()
+
     else:
         pass
 
@@ -436,7 +455,7 @@ def rotate_list(list, num):
     return list
 
 
-def equip(person, equipping_item): #
+def equip(person, equipping_item):
     person.set_item(equipping_item)
 
 
@@ -451,8 +470,8 @@ def get_player_decision(player):
             item_to_pickup = find_item_in_area(player)
             player.set_action("PICKUP", item_to_pickup)
 
-        elif player.get_equipped_weapon() is None and len(player.get_weapons()) != 0:
-            item_to_equip = player.get_weapons()[0]
+        elif player.get_equipped_item() is None and len(player.get_inventory()) != 0:
+            item_to_equip = player.get_inventory()[0]
             player.set_action("EQUIP", item_to_equip)
 
         elif len(find_items_by_range(player)) != 0:
