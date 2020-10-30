@@ -6,6 +6,7 @@ from graphics import Graphics
 from pygame.locals import *
 import collections
 from copy import copy
+import random
 
 clock = pygame.time.Clock()
 
@@ -39,8 +40,8 @@ enemy2_img = graphics.Enemy2.get_model()
 
 
 items = []
-item1 = Item("SPEAR", "WEAPON", 6, True, item_img, spear_character_img, [10, 6], ["DAMAGE", 100])
-item2 = Item("SPEAR2", "WEAPON", 6, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+item1 = Item("SPEAR", "WEAPON", 6, 90, True, item_img, spear_character_img, [10, 6], ["NONE", 0])
+item2 = Item("SPEAR2","WEAPON", 6, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
 items.append(item1)
 
 enemies = []
@@ -338,8 +339,24 @@ def if_action_move(game_map_temp, object):
 
 
 def attack(attacker, attacked):
-    damage = attacker.get_damage()
-    attacked.add_health(-damage)
+    damage = 0
+    hit_percentage = attacker.get_item_hit_chance() + attacker.get_accuracy_bonus() - attacked.get_agility_bonus()
+    # print("Hit Percentage:" + str(hit_percentage))
+    # print("Item Damage:" + str(attacker.get_item_damage()))
+    # print("Attack Bonus:" + str(attacker.get_attack_bonus()))
+    # If the attack hits set the damage, otherwise it stays at 0
+    if random.randint(1,100) <= hit_percentage:
+        damage = attacker.get_item_damage() + attacker.get_attack_bonus()
+        # Checks for critical strike
+        if random.randint(1, 10) <= (attacker.get_accuracy() - attacked.get_agility()):
+            damage = damage * 1.5
+            print(attacker.get_name() + " critically struck " + attacked.get_name() + " for " + str(damage) + " damage!")
+        else:
+            print(attacker.get_name() + " hit " + attacked.get_name() + " for " + str(damage) + " damage.")
+    else:
+        print(attacked.get_name() + " dodged the attack from " + attacker.get_name() + ".")
+    attacked.add_current_health(-damage)
+    print(attacked.get_name() + " has " + str(attacked.get_current_health()) + " health left.")
 
 
 def if_action_attack(object):
@@ -538,7 +555,7 @@ while True:
 
                 object_position = character.get_position()
                 type_of_action, value = character.get_action()
-                print(character.get_name() + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_health()))
+                print(character.get_name() + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_current_health()))
 
                 if type_of_action == "ATTACK":
                     if_action_attack(character)
