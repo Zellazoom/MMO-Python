@@ -6,6 +6,7 @@ from graphics import Graphics
 from pygame.locals import *
 import collections
 from copy import copy
+import random
 
 clock = pygame.time.Clock()
 
@@ -39,19 +40,19 @@ enemy2_img = graphics.Enemy2.get_model()
 
 
 items = []
-item1 = Item("SPEAR", "WEAPON", 6, True, item_img, spear_character_img, [10, 6], ["DAMAGE", 100])
-item2 = Item("SPEAR2","WEAPON", 6, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+item1 = Item("SPEAR", "WEAPON", 6, 90, True, item_img, spear_character_img, [10, 6], ["NONE", 0])
+item2 = Item("SPEAR2","WEAPON", 6, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
 items.append(item1)
 
 enemies = []
-enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 20, 1, False, [1, 6], item2, 0, 20)
-enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, 1, False, [30, 6], None, 0, 10)
+enemy1 = Enemy("Enemy1", enemy1_img, "ENEMY", 10, -1, 0, -1, 1, False, [1, 6], item2, 0, 20)
+enemy2 = Enemy("Enemy2", enemy2_img, "ENEMY", 10, -1, 0, -1, 1, False, [30, 6], None, 0, 10)
 enemies.append(enemy1)
 enemies.append(enemy2)
 
 players = []
-player1 = Player("Player", player_img, "Andrew", 12, 1, False, [6, 6], None, 0, 20)
-player2 = Player("Player", player_img, "Yeet", 40, 2, False, [7, 6], None, 99, 20)
+player1 = Player("Player", player_img, "Andrew", 12, -1, 0, -1, 1, False, [6, 6], None, 0, 20)
+player2 = Player("Player", player_img, "Yeet", 30, -1, 0, -1, 2, False, [7, 6], None, 99, 20)
 #players.append(player1)
 players.append(player2)
 
@@ -338,8 +339,24 @@ def if_action_move(game_map_temp, object):
 
 
 def attack(attacker, attacked):
-    damage = attacker.get_damage()
+    damage = 0
+    hit_percentage = attacker.get_item_hit_chance() + attacker.get_accuracy_bonus() - attacked.get_agility_bonus()
+    # print("Hit Percentage:" + str(hit_percentage))
+    # print("Item Damage:" + str(attacker.get_item_damage()))
+    # print("Attack Bonus:" + str(attacker.get_attack_bonus()))
+    # If the attack hits set the damage, otherwise it stays at 0
+    if random.randint(1,100) <= hit_percentage:
+        damage = attacker.get_item_damage() + attacker.get_attack_bonus()
+        # Checks for critical strike
+        if random.randint(1, 10) <= (attacker.get_accuracy() - attacked.get_agility()):
+            damage = damage * 1.5
+            print(attacker.get_name() + " critically struck " + attacked.get_name() + " for " + str(damage) + " damage!")
+        else:
+            print(attacker.get_name() + " hit " + attacked.get_name() + " for " + str(damage) + " damage.")
+    else:
+        print(attacked.get_name() + " dodged the attack from " + attacker.get_name() + ".")
     attacked.add_health(-damage)
+    print(attacked.get_name() + " has " + str(attacked.get_health()) + " health left.")
 
 
 def if_action_attack(object):

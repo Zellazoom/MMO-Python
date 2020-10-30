@@ -2,11 +2,12 @@ import pygame
 
 
 class Item(pygame.sprite.Sprite):
-    def __init__(self, name, item_type, damage, is_on_ground, image, player_image, position, magic):
+    def __init__(self, name, item_type, damage, hit_chance, is_on_ground, image, player_image, position, magic):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
         self.item_type = item_type  # Can be weapon, wearable, potion, trinket
         self.damage = damage
+        self.hit_chance = hit_chance
         self.is_on_ground = is_on_ground
         self.image = image
         self.player_image = player_image
@@ -29,6 +30,12 @@ class Item(pygame.sprite.Sprite):
 
     def get_damage(self):
         return self.damage
+
+    def set_hit_chance(self, hit_chance):
+        self.hit_chance = hit_chance
+
+    def get_hit_chance(self):
+        return self.hit_chance
 
     def on_ground(self):
         return self.is_on_ground

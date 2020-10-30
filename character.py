@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Character:
-    def __init__(self, identifier, image, name, health, speed, is_dead, position, item, starting_xp, death_xp):
+    def __init__(self, identifier, image, name, health, accuracy, agility, attack, speed, is_dead, position, item, starting_xp, death_xp):
         self.identifier = identifier
         self.name = name
         self.image = image
@@ -13,7 +13,11 @@ class Character:
         self.item = item
         self.inventory = []
         self.damage = 4
+        self.hit_chance = 80
         self.health = health
+        self.accuracy = accuracy
+        self.agility = agility
+        self.attack = attack
         self.speed = speed
         self.type = "MOVE"
         self.value = [0, 0]
@@ -66,13 +70,50 @@ class Character:
             self.health = 0
             self.is_dead = True
 
+    def get_accuracy(self):
+        return self.accuracy
+
+    def get_accuracy_bonus(self):
+        accuracy_modifier = 5
+        return self.accuracy * accuracy_modifier
+
+    def get_item_hit_chance(self):
+        if self.item is not None:
+            item_hit_chance = self.item.get_hit_chance()
+            return item_hit_chance
+        else:
+            return self.hit_chance
+
+    def add_accuracy(self, added_accuracy):
+        self.accuracy += added_accuracy
+
+    def get_agility(self):
+        return self.agility
+
+    def get_agility_bonus(self):
+        agility_modifier = 5
+        return self.agility * agility_modifier
+
+    def add_agility(self, added_agility):
+        self.agility += added_agility
+
+    def get_attack(self):
+        return self.attack
+
+    def get_attack_bonus(self):
+        attack_modifier = 1
+        return self.attack * attack_modifier
+
+    def add_attack(self, added_attack):
+        self.attack += added_attack
+
     def get_speed(self):
         return self.speed
 
     def set_speed(self, speed):
         self.speed = speed
 
-    def get_damage(self):
+    def get_item_damage(self):
         if self.item is not None:
             item_damage = self.item.get_damage()
             if self.item.get_magic_type() == "DAMAGE":
