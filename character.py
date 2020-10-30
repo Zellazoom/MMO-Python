@@ -15,6 +15,7 @@ class Character:
         self.damage = 4
         self.hit_chance = 80
         self.health = health
+        self.current_health = health
         self.accuracy = accuracy
         self.agility = agility
         self.attack = attack
@@ -66,8 +67,15 @@ class Character:
 
     def add_health(self, added_health):
         self.health += added_health
-        if self.health <= 0:
-            self.health = 0
+        self.current_health += added_health
+
+    def get_current_health(self):
+        return self.current_health
+
+    def add_current_health(self, added_health):
+        self.current_health += added_health
+        if self.current_health <= 0:
+            self.current_health = 0
             self.is_dead = True
 
     def get_accuracy(self):
@@ -135,8 +143,15 @@ class Character:
     def get_position(self):
         return self.position
 
+    def print_stats(self):
+        print(self.get_name() + "'s Stats:")
+        print("Rank: " + str(self.get_rank()))
+        print("Max Health: " + str(self.get_health()))
+        print("Accuracy: " + str(self.get_accuracy()))
+        print("Agility: " + str(self.get_agility()))
+        print("Attack: " + str(self.get_attack()))
 
-    # Works with items and inventory
+        # Works with items and inventory
     def get_item(self, item):
         self.inventory.append(item)
 
