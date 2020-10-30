@@ -40,7 +40,7 @@ enemy2_img = graphics.Enemy2.get_model()
 
 items = []
 item1 = Item("SPEAR", "WEAPON", 6, True, item_img, spear_character_img, [10, 6], ["DAMAGE", 100])
-item2 = Item("SPEAR2","WEAPON", 6, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+item2 = Item("SPEAR2", "WEAPON", 6, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
 items.append(item1)
 
 enemies = []
@@ -353,8 +353,8 @@ def if_action_attack(object):
                 print(attacked.get_name() + " IS DEAD+++++++++++++++")
                 # Drop Equipped Item
                 try:
-                    if attacked.get_equipped_item() is not None:
-                        dropped_item = copy(attacked.get_equipped_item())
+                    if attacked.get_equipped_weapon() is not None:
+                        dropped_item = copy(attacked.get_equipped_weapon())
                         attacked.drop_item(dropped_item)
                         dropped_item.set_position(attacked.get_position())
                         dropped_item.set_on_ground(True)
@@ -376,8 +376,8 @@ def if_action_attack(object):
             try:
                 # Drop Equipped Item
                 try:
-                    if attacked.get_equipped_item() is not None:
-                        dropped_item = copy(attacked.get_equipped_item())
+                    if attacked.get_equipped_weapon() is not None:
+                        dropped_item = copy(attacked.get_equipped_weapon())
                         attacked.drop_item(dropped_item)
                         dropped_item.set_position(attacked.get_position())
                         dropped_item.set_on_ground(True)
@@ -419,7 +419,7 @@ def rotate_list(list, num):
     return list
 
 
-def equip(person, equipping_item):
+def equip(person, equipping_item): #
     person.set_item(equipping_item)
 
 
@@ -434,8 +434,8 @@ def get_player_decision(player):
             item_to_pickup = find_item_in_area(player)
             player.set_action("PICKUP", item_to_pickup)
 
-        elif player.get_equipped_item() is None and len(player.get_inventory()) != 0:
-            item_to_equip = player.get_inventory()[0]
+        elif player.get_equipped_weapon() is None and len(player.get_weapons()) != 0:
+            item_to_equip = player.get_weapons()[0]
             player.set_action("EQUIP", item_to_equip)
 
         elif len(find_items_by_range(player)) != 0:
