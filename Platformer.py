@@ -63,9 +63,6 @@ true_scroll = [0, 0]
 
 speed = 2
 
-print("2")
-
-
 def get_map_dimensions(path):
     f = open(path + '.txt', 'r')
     data = f.read()
