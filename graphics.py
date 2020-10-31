@@ -66,14 +66,14 @@ class Graphics:
 
                 else:
                     try:
-                        player_current_image = (player.get_equipped_item()).get_player_image()
+                        player_current_image = (player.get_equipped_weapon()).get_player_image()
                         player.set_image(player_current_image)
                     except:
                         player.set_image(self.Player.get_model())
 
                 if (player.get_action()[0] == "MOVE"and not find_enemy_in_area(player)) or player.get_action()[0] == "ATTACK":
-                    if player.get_equipped_item() is not None:
-                        item = str(player.get_equipped_item().get_name())
+                    if player.get_equipped_weapon() is not None:
+                        item = str(player.get_equipped_weapon().get_name())
 
                     player.set_image(self.Player.get_animation_frame(item + action, int(
                         1 + (counter_two % self.fps) / (self.fps / animationFrames))))

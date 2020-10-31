@@ -40,8 +40,8 @@ enemy2_img = graphics.Enemy2.get_model()
 
 
 items = []
-item1 = Item("SPEAR", "WEAPON", 6, 90, True, item_img, spear_character_img, [10, 6], ["NONE", 0])
-item2 = Item("SPEAR2","WEAPON", 6, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+item1 = Item("SPEAR", "WEAPON", 6, 90, True, item_img, spear_character_img, [10, 6], ["DAMAGE", 2])
+item2 = Item("SPEAR2", "WEAPON", 6, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
 items.append(item1)
 
 enemies = []
@@ -52,7 +52,7 @@ enemies.append(enemy2)
 
 players = []
 player1 = Player("Player", player_img, "Andrew", 12, -1, 0, -1, 1, False, [6, 6], None, 0, 20)
-player2 = Player("Player", player_img, "Yeet", 30, -1, 0, -1, 2, False, [7, 6], None, 99, 20)
+player2 = Player("Player", player_img, "Yeet", 40, -1, 0, -1, 2, False, [7, 6], None, 99, 20)
 #players.append(player1)
 players.append(player2)
 
@@ -340,13 +340,13 @@ def if_action_move(game_map_temp, object):
 
 def attack(attacker, attacked):
     damage = 0
-    hit_percentage = attacker.get_item_hit_chance() + attacker.get_accuracy_bonus() - attacked.get_agility_bonus()
+    hit_percentage = attacker.get_weapon_hit_chance() + attacker.get_accuracy_bonus() - attacked.get_agility_bonus()
     # print("Hit Percentage:" + str(hit_percentage))
     # print("Item Damage:" + str(attacker.get_item_damage()))
     # print("Attack Bonus:" + str(attacker.get_attack_bonus()))
     # If the attack hits set the damage, otherwise it stays at 0
     if random.randint(1,100) <= hit_percentage:
-        damage = attacker.get_item_damage() + attacker.get_attack_bonus()
+        damage = attacker.get_weapon_damage() + attacker.get_attack_bonus()
         # Checks for critical strike
         if random.randint(1, 10) <= (attacker.get_accuracy() - attacked.get_agility()):
             damage = damage * 1.5
@@ -372,8 +372,8 @@ def if_action_attack(object):
                 print(attacked.get_name() + " IS DEAD+++++++++++++++")
                 # Drop Equipped Item
                 try:
-                    if attacked.get_equipped_item() is not None:
-                        dropped_item = copy(attacked.get_equipped_item())
+                    if attacked.get_equipped_weapon() is not None:
+                        dropped_item = copy(attacked.get_equipped_weapon())
                         attacked.drop_item(dropped_item)
                         dropped_item.set_position(attacked.get_position())
                         dropped_item.set_on_ground(True)
@@ -395,8 +395,8 @@ def if_action_attack(object):
             try:
                 # Drop Equipped Item
                 try:
-                    if attacked.get_equipped_item() is not None:
-                        dropped_item = copy(attacked.get_equipped_item())
+                    if attacked.get_equipped_weapon() is not None:
+                        dropped_item = copy(attacked.get_equipped_weapon())
                         attacked.drop_item(dropped_item)
                         dropped_item.set_position(attacked.get_position())
                         dropped_item.set_on_ground(True)
@@ -438,6 +438,7 @@ def if_action_attack(object):
 def pickup(person, pickup_item):
     person.get_item(pickup_item)
     pickup_item.set_on_ground(False)
+    person.print_inventory()
     try:
         items.remove(pickup_item)
         objects.remove(pickup_item)
@@ -470,8 +471,8 @@ def get_player_decision(player):
             item_to_pickup = find_item_in_area(player)
             player.set_action("PICKUP", item_to_pickup)
 
-        elif player.get_equipped_item() is None and len(player.get_inventory()) != 0:
-            item_to_equip = player.get_inventory()[0]
+        elif player.get_equipped_weapon() is None and len(player.get_weapons()) != 0:  # Gotta BE this
+            item_to_equip = player.get_weapons()[0]
             player.set_action("EQUIP", item_to_equip)
 
         elif len(find_items_by_range(player)) != 0:
@@ -557,14 +558,13 @@ while True:
             turn_range = 1
             if character.get_action()[0] == "MOVE" and character.get_speed() > 1:
                 path_2 = bfs(game_map_clean, character.get_position(), character.get_action()[1])
-                print(path_2)
                 turn_range = len(path_2)
                 if turn_range >= character.get_speed():
                     turn_range = character.get_speed()
                 else:
                     turn_range = turn_range
 
-            print('Turn range: ' + str(turn_range))
+            #print('Turn range: ' + str(turn_range))
             for i in range(turn_range):
                 if isinstance(character, Player):
                     get_player_decision(character)
