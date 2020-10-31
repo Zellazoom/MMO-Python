@@ -62,6 +62,8 @@ characters = [player2, enemy1, enemy2]  # enemy1
 true_scroll = [0, 0]
 
 speed = 2
+# Problem with pushing to master: git pull origin master
+
 
 def get_map_dimensions(path):
     f = open(path + '.txt', 'r')
