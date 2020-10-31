@@ -40,24 +40,26 @@ enemy2_img = graphics.Enemy2.get_model()
 
 
 items = []
-item1 = Item("SPEAR", "WEAPON", 6, 90, True, item_img, spear_character_img, [10, 6], ["DAMAGE", 2])
-item2 = Item("SPEAR2", "WEAPON", 6, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+item1 = Item("SPEAR", "WEAPON", 6, 0, 90, True, item_img, spear_character_img, [10, 6], None)
+item2 = Item("SPEAR2", "WEAPON", 6, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+item3 = Item("SHIELD", "SHIELD", 0, 5, 0, True, item_img, None, [15, 6], None)
 items.append(item1)
+items.append(item3)
 
 enemies = []
-enemy1 = Enemy("Enemy1", enemy1_img, "Chad", 10, 1, -1, 1, 1, False, [1, 6], item2, 0, 20)
-enemy2 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 2, -2, 1, False, [30, 6], None, 0, 10)
+enemy1 = Enemy("Enemy1", enemy1_img, "Chad", 10, 0, 1, -1, 1, 1, False, [1, 6], item2, 0, 20)
+#enemy2 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 2, -2, 1, False, [30, 6], None, 0, 10)
 enemies.append(enemy1)
-enemies.append(enemy2)
+#enemies.append(enemy2)
 
 players = []
-player1 = Player("Player", player_img, "Andrew", 12, -1, 0, -1, 1, False, [6, 6], None, 0, 20)
-player2 = Player("Player", player_img, "Yeet", 40, -1, 0, -1, 2, False, [7, 6], None, 99, 20)
+player1 = Player("Player", player_img, "Andrew", 12, 0, -1, 0, -1, 1, False, [6, 6], None, 0, 20)
+player2 = Player("Player", player_img, "Yeet", 40, 0, -1, 0, -1, 2, False, [7, 6], None, 99, 20)
 #players.append(player1)
 players.append(player2)
 
-objects = [player2, enemy1, enemy2, item1]  # player1
-characters = [player2, enemy1, enemy2]  # enemy1
+objects = [player2, enemy1, item1, item3]  # player1, enemy2,
+characters = [player2, enemy1]  # enemy1, enemy2
 
 true_scroll = [0, 0]
 
@@ -346,7 +348,7 @@ def attack(attacker, attacked):
     # print("Item Damage:" + str(attacker.get_item_damage()))
     # print("Attack Bonus:" + str(attacker.get_attack_bonus()))
     # If the attack hits set the damage, otherwise it stays at 0
-    if random.randint(1,100) <= hit_percentage:
+    if random.randint(1, 100) <= hit_percentage:
         damage = attacker.get_weapon_damage() + attacker.get_attack_bonus()
         # Checks for critical strike
         if random.randint(1, 10) <= (attacker.get_accuracy() - attacked.get_agility()):
@@ -476,6 +478,10 @@ def get_player_decision(player):
             item_to_equip = player.get_weapons()[0]
             player.set_action("EQUIP", item_to_equip)
 
+        elif player.get_equipped_shield() is None and len(player.get_shields()) != 0:
+            item_to_equip = player.get_shields()[0]
+            player.set_action("EQUIP", item_to_equip)
+
         elif len(find_items_by_range(player)) != 0:
             target = find_items_by_range(player)
             player.set_action("MOVE", target[0].get_position())
@@ -547,7 +553,8 @@ while True:
 
     if counter % FPS == 0:  # Main Desicion Code here
         for character in characters:
-            character.update()
+            # print("updating")
+            character.update_self()
         for character in characters:  # For loop after this can double action
             # Testing speed
             if isinstance(character, Player):
@@ -575,7 +582,7 @@ while True:
 
                 object_position = character.get_position()
                 type_of_action, value = character.get_action()
-                print(character.get_name() + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_current_health()))
+                print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_current_health()))
 
                 if type_of_action == "ATTACK":
                     if_action_attack(character)

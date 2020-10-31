@@ -3,14 +3,14 @@ import numpy as np
 
 
 class Character:
-    def __init__(self, identifier, image, name, health, accuracy, agility, attack, speed, is_dead, position, starting_weapon, starting_xp, death_xp):
+    def __init__(self, identifier, image, name, health, defense, accuracy, agility,
+                 attack, speed, is_dead, position, starting_weapon, starting_xp, death_xp):
         self.identifier = identifier
         self.name = name
         self.image = image
         self.rect = pygame.Rect(position[0] * 16, position[1] * 16, 16, 16)
         self.is_dead = is_dead
         self.position = position
-        #self.inventory = []
         self.damage = 4
         self.hit_chance = 80
         self.health = health
@@ -19,6 +19,7 @@ class Character:
         elif self.health < 0:
             self.health = 0
         self.current_health = health
+        self.defense = defense
         self.accuracy = accuracy
         self.agility = agility
         self.attack = attack
@@ -43,9 +44,12 @@ class Character:
         self.weapon = starting_weapon
         self.shield = None
         self.trinket = None
+        self.active_potion = None
 
         # self.item = item
         self.inventory = []
+        self.defensive_items = [self.shield, self.boots, self.armor, self.hat, self.trinket, self.active_potion]
+        #self.defensive_items = ["SHIELD", "BOOTS", "ARMOR", "HAT", "TRINKET", "ACTIVE_POTION"]
 
         # First wearable in each slot is equipped (One of each)
         self.wearable_inventory = {"HAT": [], "NECKLACE": [], "ARMOR": [], "BOOTS": []}  # Hat, necklace, armor, shoes
@@ -55,11 +59,11 @@ class Character:
 
         # No equipped items. All items in this are a one time use
         self.potion_inventory = {"DAMAGE_POTION": [], "HEALING_POTION": [],
-                                 "SPEED_POTION": []}  # Damage, healing, speed
+                                 "SPEED_POTION": [], "DEFENCE_POTION": []}  # Damage, healing, speed
 
         # 1 Trinket can be equipped at a time from any of the groups
         self.trinket_inventory = {"DAMAGE_TRINKET": [], "HEALING_TRINKET": [],
-                                  "SPEED_TRINKET": []}  # Damage, healing, speed
+                                  "SPEED_TRINKET": [], "DEFENCE_TRINKET": []}  # Damage, healing, speed
 
         self.inventory = [self.wearable_inventory, self.weapon_inventory, self.potion_inventory, self.trinket_inventory]
 
@@ -109,6 +113,24 @@ class Character:
             self.current_health = 0
             self.is_dead = True
 
+    def compute_defense(self):
+        self.defensive_items = [self.shield, self.boots, self.armor, self.hat, self.trinket, self.active_potion]
+        defense = 0
+        for item in self.defensive_items:
+            if item is not None:
+                try:
+                    defense += item.get_defense()
+                    print(str(item.get_name()) + str(item.get_defense()))
+                except:
+                    pass
+            else:
+                pass
+        print(defense)
+        self.defense = defense
+
+    def get_defense(self):
+        return self.defense
+
     def get_accuracy(self):
         return self.accuracy
 
@@ -155,10 +177,14 @@ class Character:
     def get_weapon_damage(self):
         if self.weapon is not None:
             weapon_damage = self.weapon.get_damage()
-            if self.weapon.get_magic_type() == "DAMAGE":
-                magic_damage = self.weapon.get_magic()[1]
+            magic_damage = 0
+            if self.weapon.get_magic_type() is not None:
+                if self.weapon.get_magic_type() == "DAMAGE":
+                    magic_damage = self.weapon.get_magic()[1]
+                else:
+                    pass
             else:
-                magic_damage = 0
+                pass
 
             return weapon_damage + magic_damage
         else:
@@ -214,6 +240,12 @@ class Character:
         else:
             return None
 
+    def get_equipped_shield(self):
+        if self.shield is not None:
+            return self.shield
+        else:
+            return None
+
     def get_inventory(self):
         return self.inventory
 
@@ -222,15 +254,20 @@ class Character:
         weapon_list = weapon_dict.get("WEAPON")
         return weapon_list
 
+    def get_shields(self):
+        shield_dict = self.inventory[1]
+        shield_list = shield_dict.get("SHIELD")
+        return shield_list
+
     def set_item(self, item):
         for dict in self.inventory:
             try:
                 list = dict.get(item.get_type())
                 if item in list:
                     setattr(self, item.get_type().lower(), item)
+                    print("SETTING_ITEM: " + item.get_name())
                     if item.get_type() == "WEAPON":
                         self.set_image(item.get_player_image())
-                    print("Set item: " + item.get_name())
                     break
                 elif list == self.trinket_inventory:
                     self.trinket = item
@@ -239,6 +276,7 @@ class Character:
                     print("Item can not be equipped")
             except:
                 pass
+        self.compute_defense()
 
     def print_inventory(self):
         for dict in self.inventory:
@@ -264,10 +302,10 @@ class Character:
     def get_death_xp(self):
         return self.death_xp
 
-    def update(self):
+    def update_self(self):
+        self.defensive_items = [self.shield, self.boots, self.armor, self.hat, self.trinket, self.active_potion]
 
-
-        pass  # Stuff that can happen every round for later use like health regen or something
+        # pass  # Stuff that can happen every round for later use like health regen or something
         # Try two Ways for magical stuff:
         # 1) put code in constructor of item
         # 2) set certain properties like damage_buff, healing_buff, speed_buff, and stuff
