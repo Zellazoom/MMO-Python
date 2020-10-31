@@ -3,18 +3,21 @@ import numpy as np
 
 
 class Character:
-    def __init__(self, identifier, image, name, health, accuracy, agility, attack, speed, is_dead, position, item, starting_xp, death_xp):
+    def __init__(self, identifier, image, name, health, accuracy, agility, attack, speed, is_dead, position, starting_weapon, starting_xp, death_xp):
         self.identifier = identifier
         self.name = name
         self.image = image
         self.rect = pygame.Rect(position[0] * 16, position[1] * 16, 16, 16)
         self.is_dead = is_dead
         self.position = position
-        self.item = item
-        self.inventory = []
+        #self.inventory = []
         self.damage = 4
         self.hit_chance = 80
         self.health = health
+        if self.health > 100:
+            self.health = 100
+        elif self.health < 0:
+            self.health = 0
         self.current_health = health
         self.accuracy = accuracy
         self.agility = agility
@@ -31,6 +34,34 @@ class Character:
         else:
             self.current_rank = int(np.log(self.character_xp/100)/np.log(2)) + 1
         self.next_rank = self.current_rank + 1
+
+        self.hat = None
+        self.necklace = None
+        self.armor = None
+        self.boots = None
+
+        self.weapon = starting_weapon
+        self.shield = None
+        self.trinket = None
+
+        # self.item = item
+        self.inventory = []
+
+        # First wearable in each slot is equipped (One of each)
+        self.wearable_inventory = {"HAT": [], "NECKLACE": [], "ARMOR": [], "BOOTS": []}  # Hat, necklace, armor, shoes
+
+        # First item in each slot is equipped (One of each)
+        self.weapon_inventory = {"WEAPON": [], "SHIELD": []}  # Weapons, shields
+
+        # No equipped items. All items in this are a one time use
+        self.potion_inventory = {"DAMAGE_POTION": [], "HEALING_POTION": [],
+                                 "SPEED_POTION": []}  # Damage, healing, speed
+
+        # 1 Trinket can be equipped at a time from any of the groups
+        self.trinket_inventory = {"DAMAGE_TRINKET": [], "HEALING_TRINKET": [],
+                                  "SPEED_TRINKET": []}  # Damage, healing, speed
+
+        self.inventory = [self.wearable_inventory, self.weapon_inventory, self.potion_inventory, self.trinket_inventory]
 
 
 
@@ -85,10 +116,10 @@ class Character:
         accuracy_modifier = 5
         return self.accuracy * accuracy_modifier
 
-    def get_item_hit_chance(self):
-        if self.item is not None:
-            item_hit_chance = self.item.get_hit_chance()
-            return item_hit_chance
+    def get_weapon_hit_chance(self):
+        if self.weapon is not None:
+            weapon_hit_chance = self.weapon.get_hit_chance()
+            return weapon_hit_chance
         else:
             return self.hit_chance
 
@@ -121,15 +152,15 @@ class Character:
     def set_speed(self, speed):
         self.speed = speed
 
-    def get_item_damage(self):
-        if self.item is not None:
-            item_damage = self.item.get_damage()
-            if self.item.get_magic_type() == "DAMAGE":
-                magic_damage = self.item.get_magic()[1]
+    def get_weapon_damage(self):
+        if self.weapon is not None:
+            weapon_damage = self.weapon.get_damage()
+            if self.weapon.get_magic_type() == "DAMAGE":
+                magic_damage = self.weapon.get_magic()[1]
             else:
                 magic_damage = 0
 
-            return item_damage + magic_damage
+            return weapon_damage + magic_damage
         else:
             return self.damage
 
@@ -151,28 +182,70 @@ class Character:
         print("Agility: " + str(self.get_agility()))
         print("Attack: " + str(self.get_attack()))
 
-        # Works with items and inventory
+
+    # Works with items and inventory  ------------------------------
     def get_item(self, item):
-        self.inventory.append(item)
+        for dict in self.inventory:
+            try:
+                list = dict.get(item.get_type())
+                list.append(item)
+                dict[item.get_type()] = list
+            except:
+                pass
 
     def drop_item(self, item):
-        if item in self.inventory:
-            self.inventory.remove(item)
+        # This might delete all of the instances of the item
+        for dict in self.inventory:
+            try:
+                list = dict.get(item.get_type())
+                for objects in list:
+                    if objects == item:
+                        list.remove(item)
+                        break
+                    else:
+                        pass
+            except:
+                pass
         return item
 
-    def get_equipped_item(self):
-        return self.item
+    def get_equipped_weapon(self):
+        if self.weapon is not None:
+            return self.weapon
+        else:
+            return None
 
     def get_inventory(self):
         return self.inventory
 
-    def set_item(self, item):
-        if item in self.inventory:
-            self.item = item
-            self.set_image(item.get_player_image())
-        else:
-            pass
+    def get_weapons(self):
+        weapon_dict = self.inventory[1]
+        weapon_list = weapon_dict.get("WEAPON")
+        return weapon_list
 
+    def set_item(self, item):
+        for dict in self.inventory:
+            try:
+                list = dict.get(item.get_type())
+                if item in list:
+                    setattr(self, item.get_type().lower(), item)
+                    if item.get_type() == "WEAPON":
+                        self.set_image(item.get_player_image())
+                    print("Set item: " + item.get_name())
+                    break
+                elif list == self.trinket_inventory:
+                    self.trinket = item
+                    break
+                else:
+                    print("Item can not be equipped")
+            except:
+                pass
+
+    def print_inventory(self):
+        for dict in self.inventory:
+            for key, val in dict.items():
+                print(key + ": ")
+                for i in val:
+                    print("    " + i.get_name())
 
     # XP RANKING METHODS
     def get_xp(self):
