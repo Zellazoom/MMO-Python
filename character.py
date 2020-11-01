@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+import random
 
 
 class Character:
@@ -199,6 +200,22 @@ class Character:
 
     def get_position(self):
         return self.position
+
+    def level_up(self):
+        print(self.get_name() + " leveled up!")
+        self.add_health(2)
+        print("+2 Max Health")
+        increased_stat = random.randint(1, 3)
+        if increased_stat == 1:
+            self.add_accuracy(1)
+            print("+1 Accuracy")
+        elif increased_stat == 2:
+            self.add_agility(1)
+            print("+1 Agility")
+        else:
+            self.add_attack(1)
+            print("+1 Attack")
+        self.print_stats()
 
     def print_stats(self):
         print(self.get_name() + "'s Stats:")

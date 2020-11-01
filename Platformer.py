@@ -349,7 +349,8 @@ def attack(attacker, attacked):
     # print("Attack Bonus:" + str(attacker.get_attack_bonus()))
     # If the attack hits set the damage, otherwise it stays at 0
     if random.randint(1, 100) <= hit_percentage:
-        damage = attacker.get_weapon_damage() + attacker.get_attack_bonus()
+        damage = attacker.get_weapon_damage() + attacker.get_attack_bonus() - attacked.get_defense()
+        print(attacked.get_defense())
         # Checks for critical strike
         if random.randint(1, 10) <= (attacker.get_accuracy() - attacked.get_agility()):
             damage = damage * 1.5
@@ -418,21 +419,9 @@ def if_action_attack(object):
         else:
             pass
         # level up code
-        if object.get_rank() > initial_rank:
-            print(object.get_name() + " leveled up!")
-            object.add_health(2)
-            print("+2 Max Health")
-            increased_stat = random.randint(1, 3)
-            if increased_stat == 1:
-                object.add_accuracy(1)
-                print("+1 Accuracy")
-            elif increased_stat == 2:
-                object.add_agility(1)
-                print("+1 Agility")
-            else:
-                object.add_attack(1)
-                print("+1 Attack")
-            object.print_stats()
+        while object.get_rank() > initial_rank:
+            object.level_up()
+            initial_rank = initial_rank + 1
 
     else:
         pass
