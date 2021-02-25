@@ -7,6 +7,7 @@ from pygame.locals import *
 import collections
 from copy import copy
 import random
+import time
 
 clock = pygame.time.Clock()
 
@@ -39,31 +40,147 @@ enemy1_img = graphics.Enemy1.get_model()
 enemy2_img = graphics.Enemy2.get_model()
 
 
-items = []
-item1 = Item("SPEAR", "WEAPON", 6, 0, 90, True, item_img, spear_character_img, [10, 6], None)
-item2 = Item("SPEAR2", "WEAPON", 6, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
-item3 = Item("SHIELD", "SHIELD", 0, 5, 0, True, item_img, None, [15, 6], None)
-items.append(item1)
-items.append(item3)
+def split(word):
+    return [char for char in word]
 
-enemies = []
-enemy1 = Enemy("Enemy1", enemy1_img, "Chad", 10, 0, 1, -1, 1, 1, False, [1, 6], item2, 0, 20)
-#enemy2 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 2, -2, 1, False, [30, 6], None, 0, 10)
-enemies.append(enemy1)
-#enemies.append(enemy2)
+
+def load_new_map(path, items, enemies1, enemies2):
+    f = open(path + '1.txt', 'r')
+    data = f.read()
+    f.close()
+    data = data.split('\n')
+    i = 0
+    item_count = 0
+    enemy1_count = 0
+    enemy2_count = 0
+    f = open(path + '.txt', 'w')
+    f.seek(0, 0)
+    for row in data:
+        j = 0
+        for k in row:
+            if str(k) == str(2):
+                items[item_count].set_position([j, i])
+                print(items[item_count].get_name() + "----------------")
+                print(items[item_count].get_position())
+                x = split(row)
+                x[j] = "0"
+                row = x
+                row = ''.join(row)
+                item_count+=1
+            if str(k) == str(3):
+                enemies1[enemy1_count].set_position([j, i])
+                print(enemies1[enemy1_count].get_name() + "----------------")
+                print(enemies1[enemy1_count].get_position())
+                x = split(row)
+                x[j] = "0"
+                row = x
+                row = ''.join(row)
+                enemy1_count += 1
+            if str(k) == str(4):
+                enemies2[enemy2_count].set_position([j, i])
+                print(enemies2[enemy2_count].get_name() + "----------------")
+                print(enemies2[enemy2_count].get_position())
+                x = split(row)
+                x[j] = "0"
+                row = x
+                row = ''.join(row)
+                enemy2_count += 1
+            else:
+                pass
+            j += 1
+        f.write(str(row) + '\n')
+        i += 1
+    f.close()
+    return items, enemies1, enemies2
+
+
+items = []
+item2 = Item("Spear", "WEAPON", 6, 0, 90, True, item_img, spear_character_img, [0, 0], None)  # [10, 6]
+item3 = Item("Leather Armor", "ARMOR", 0, 5, 0, True, item_img, None, [0, 0], None)  # [20, 3]"Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None
+item4 = Item("Shield", "SHIELD", 0, 3, 0, True, item_img, None, [0, 0], None)  #[15, 6]
+item5 = Item("Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None) #[20, 6]
+item6 = Item("Hat", "HAT", 0, 1, 0, True, item_img, None, [0, 0], None)  #[15, 6]
+item7 = Item("Boots", "BOOTS", 0, 2, 0, True, item_img, None, [0, 0], None) #[20, 6]
+
+item1 = Item("Spear", "WEAPON", 10, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+
+
+items.append(item2)
+items.append(item3)
+items.append(item4)
+items.append(item5)
+items.append(item6)
+items.append(item7)
+
+# print("Items: ++++++++++++++++++")
+# for i in items:
+#     print(i.get_position())
+
+enemies1 = []
+enemies2 = []
+# identifier, image, name, health, defense, accuracy, agility, attack, speed, is_dead, position, item, starting_xp, death_xp
+enemy1 = Enemy("Enemy1", enemy1_img, "Chad",    10,  0,   1, -1, 1, 1, False, [1, 6],  item1, 0, 20)
+enemy2 = Enemy("Enemy1", enemy1_img, "Chad",    10,  0,   1, -1, 1, 1, False, [1, 6],  item1, 0, 20)
+enemy3 = Enemy("Enemy1", enemy1_img, "Chad",    10,  0,   1, -1, 1, 1, False, [1, 6],  item1, 0, 20)
+enemy4 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 1.5, -2, 1, 1, False, [20, 5], item1, 0, 10)
+enemy5 = Enemy("Enemy2", enemy2_img, "Goblin2", 20, -1, 1.5, -2, 1, 1, False, [30, 6], item1, 0, 10)
+enemy6 = Enemy("Enemy2", enemy2_img, "Goblin3", 20, -1, 1.5, -2, 1, 1, False, [40, 6], item1, 0, 10)
+enemy7 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 1.5, -2, 1, 1, False, [20, 5], item1, 0, 10)
+enemy8 = Enemy("Enemy2", enemy2_img, "Goblin2", 20, -1, 1.5, -2, 1, 1, False, [30, 6], item1, 0, 10)
+enemy9 = Enemy("Enemy2", enemy2_img, "Goblin3", 20, -1, 1.5, -2, 1, 1, False, [40, 6], item1, 0, 10)
+enemy10 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 1.5, -2, 1, 1, False, [20, 5], item1, 0, 10)
+enemy11 = Enemy("Enemy2", enemy2_img, "Goblin2", 20, -1, 1.5, -2, 1, 1, False, [30, 6], item1, 0, 10)
+enemy12 = Enemy("Enemy2", enemy2_img, "Goblin3", 20, -1, 1.5, -2, 1, 1, False, [40, 6], item1, 0, 10)
+enemy13 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 1.5, -2, 1, 1, False, [20, 5], item1, 0, 10)
+
+enemies1.append(enemy1)
+enemies1.append(enemy2)
+enemies1.append(enemy3)
+enemies2.append(enemy4)
+enemies2.append(enemy5)
+enemies2.append(enemy6)
+enemies2.append(enemy7)
+enemies2.append(enemy8)
+enemies2.append(enemy9)
+enemies2.append(enemy10)
+enemies2.append(enemy11)
+enemies2.append(enemy12)
+enemies2.append(enemy13)
+
 
 players = []
 player1 = Player("Player", player_img, "Andrew", 12, 0, -1, 0, -1, 1, False, [6, 6], None, 0, 20)
-player2 = Player("Player", player_img, "Yeet", 40, 0, -1, 0, -1, 2, False, [7, 6], None, 99, 20)
+player2 = Player("Player", player_img, "Yeet",   40, 0,  1, 0,  1, 2, False, [1, 3], None, 99, 20)
 #players.append(player1)
 players.append(player2)
 
-objects = [player2, enemy1, item1, item3]  # player1, enemy2,
-characters = [player2, enemy1]  # enemy1, enemy2
+items, enemies1, enemies2 = load_new_map('map', items, enemies1, enemies2)
+
+print("Testing enemies 1 psotioins")
+for i in enemies1:
+    print(i.get_position())
+
+objects = [player2]  # player1, enemy2,
+characters = [player2]  # enemy1, enemy2
+enemies = []
+for i in items:
+    print(i.get_position())
+    objects.append(i)
+for i in enemies1:
+    print(i.get_position())
+    objects.append(i)
+    characters.append(i)
+    enemies.append(i)
+for i in enemies2:
+    print(i.get_position())
+    objects.append(i)
+    characters.append(i)
+    enemies.append(i)
 
 true_scroll = [0, 0]
 
 speed = 2
+drop_proc = 4
 # Problem with pushing to master: git pull origin master
 
 
@@ -89,6 +206,7 @@ def load_map(path):
         game_map.append(list(row))
     game_map = [[int(j) for j in i] for i in game_map]
     return game_map
+
 
 
 game_map_clean = load_map('map')
@@ -258,7 +376,7 @@ def find_enemies_by_range(object):
     if isinstance(object, Player):
         for enemy in enemies:
             path_1 = bfs(game_map_clean, object.get_position(), enemy.get_position())
-            list_of_all_enemies.append([enemy, len(path_1)-1])
+            list_of_all_enemies.append([enemy, len(path_1) - 1])
 
     if isinstance(object, Enemy):
         for player in players:
@@ -274,11 +392,99 @@ def find_enemies_by_range(object):
     return newly_sorted_list
 
 
+def find_enemies_in_range(object, length):
+    list_of_all_enemies = []
+    if isinstance(object, Player):
+        for enemy in enemies:
+            path_1 = bfs(game_map_clean, object.get_position(), enemy.get_position())
+            if len(path_1) <= length:
+                #print("Enemy " + object.get_name() + " is " + str(len(path_1)) + "blocks away")
+                list_of_all_enemies.append([enemy, len(path_1) - 1])
+            else:
+                pass
+
+    if isinstance(object, Enemy):
+        for player in players:
+            path_1 = bfs(game_map_clean, object.get_position(), player.get_position())
+            #list_of_all_enemies.append([player, len(path_1) - 1])
+            #print("Player " + object.get_name() + " is " + str(len(path_1)) + "blocks away")
+            if len(path_1) <= length:
+                list_of_all_enemies.append([player, len(path_1) - 1])
+            else:
+                pass
+
+    sorted_list = sorted(list_of_all_enemies, key=lambda x: x[1])
+
+    newly_sorted_list = []
+    for list in sorted_list:
+        newly_sorted_list.append(list[0])
+
+    return newly_sorted_list
+
+
+def shortest_dist_to_enemy(object):
+    list_of_all_enemies = []
+    if isinstance(object, Player):
+        for enemy in enemies:
+            path_1 = bfs(game_map_clean, object.get_position(), enemy.get_position())
+            list_of_all_enemies.append([enemy, len(path_1) - 1])
+
+    if isinstance(object, Enemy):
+        for player in players:
+            path_1 = bfs(game_map_clean, object.get_position(), player.get_position())
+            list_of_all_enemies.append([player, len(path_1) - 1])
+
+    sorted_list = sorted(list_of_all_enemies, key=lambda x: x[1])
+    if len(sorted_list) != 0:
+        newly_sorted_list = []
+        for list in sorted_list:
+            newly_sorted_list.append(list[1])
+        length_away = newly_sorted_list[0] - 1
+    else:
+        length_away = float('inf')
+    return length_away
+
+
+def shortest_dist_to_item(object):
+    list_of_all_items = []
+    for item in items:
+        path_1 = bfs(game_map_clean, object.get_position(), item.get_position())
+        list_of_all_items.append([item, len(path_1)-1])
+
+    sorted_list = sorted(list_of_all_items, key=lambda x: x[1])
+    if len(sorted_list) != 0:
+        newly_sorted_list = []
+        for list in sorted_list:
+            newly_sorted_list.append(list[1])
+        length_away = newly_sorted_list[0] - 1
+    else:
+        length_away = float('inf')
+    return length_away
+
+
 def find_items_by_range(object):
     list_of_all_items = []
     for item in items:
         path_1 = bfs(game_map_clean, object.get_position(), item.get_position())
         list_of_all_items.append([item, len(path_1)-1])
+
+    sorted_list = sorted(list_of_all_items, key=lambda x: x[1])
+
+    newly_sorted_list = []
+    for list in sorted_list:
+        newly_sorted_list.append(list[0])
+
+    return newly_sorted_list
+
+
+def find_items_in_range(object, length):
+    list_of_all_items = []
+    for item in items:
+        path_1 = bfs(game_map_clean, object.get_position(), item.get_position())
+        if len(path_1) - 1 <= length:
+            list_of_all_items.append([item, len(path_1) - 1])
+        else:
+            pass
     sorted_list = sorted(list_of_all_items, key=lambda x: x[1])
 
     newly_sorted_list = []
@@ -349,8 +555,8 @@ def attack(attacker, attacked):
     # print("Attack Bonus:" + str(attacker.get_attack_bonus()))
     # If the attack hits set the damage, otherwise it stays at 0
     if random.randint(1, 100) <= hit_percentage:
-        damage = attacker.get_weapon_damage() + attacker.get_attack_bonus() - attacked.get_defense()
-        print(attacked.get_defense())
+        damage = max(0, attacker.get_weapon_damage() + attacker.get_attack_bonus() - attacked.get_defense())
+        #print(attacked.get_defense())
         # Checks for critical strike
         if random.randint(1, 10) <= (attacker.get_accuracy() - attacked.get_agility()):
             damage = damage * 1.5
@@ -376,14 +582,18 @@ def if_action_attack(object):
                 print(attacked.get_name() + " IS DEAD+++++++++++++++")
                 # Drop Equipped Item
                 try:
-                    if attacked.get_equipped_weapon() is not None:
-                        dropped_item = copy(attacked.get_equipped_weapon())
-                        attacked.drop_item(dropped_item)
-                        dropped_item.set_position(attacked.get_position())
-                        dropped_item.set_on_ground(True)
+                    drop_rand = random.randint(1, 10)
+                    if drop_rand < drop_proc:
+                        if attacked.get_equipped_weapon() is not None:
+                            dropped_item = copy(attacked.get_equipped_weapon())
+                            attacked.drop_item(dropped_item)
+                            dropped_item.set_position(attacked.get_position())
+                            dropped_item.set_on_ground(True)
 
-                        items.append(dropped_item)
-                        objects.append(dropped_item)
+                            items.append(dropped_item)
+                            objects.append(dropped_item)
+                    else:
+                        pass
                 except:
                     print("Something happened")
 
@@ -399,14 +609,21 @@ def if_action_attack(object):
             try:
                 # Drop Equipped Item
                 try:
-                    if attacked.get_equipped_weapon() is not None:
-                        dropped_item = copy(attacked.get_equipped_weapon())
-                        attacked.drop_item(dropped_item)
-                        dropped_item.set_position(attacked.get_position())
-                        dropped_item.set_on_ground(True)
+                    drop_rand = random.randint(1, 10)
+                    print("______________))))))))))))))_____Drop Proc")
+                    print(drop_rand)
+                    print(drop_proc)
+                    if drop_rand < drop_proc:
+                        if attacked.get_equipped_weapon() is not None:
+                            dropped_item = copy(attacked.get_equipped_weapon())
+                            attacked.drop_item(dropped_item)
+                            dropped_item.set_position(attacked.get_position())
+                            dropped_item.set_on_ground(True)
 
-                        items.append(dropped_item)
-                        objects.append(dropped_item)
+                            items.append(dropped_item)
+                            objects.append(dropped_item)
+                    else:
+                        pass
                 except:
                     pass
 
@@ -430,10 +647,12 @@ def if_action_attack(object):
 def pickup(person, pickup_item):
     person.get_item(pickup_item)
     pickup_item.set_on_ground(False)
+    #person.print_inventory_of_type("WEAPON")
     person.print_inventory()
     try:
         items.remove(pickup_item)
         objects.remove(pickup_item)
+        person.set_has_new_weapon(True)
     except:
         print("Item is already removed Welp")
 
@@ -450,6 +669,7 @@ def rotate_list(list, num):
 
 def equip(person, equipping_item):
     person.set_item(equipping_item)
+    person.set_has_new_weapon(False)
 
 
 def if_action_equip(object):
@@ -458,37 +678,53 @@ def if_action_equip(object):
 
 
 def get_player_decision(player):
-    try:
-        if find_item_in_area(player) is not None:
-            item_to_pickup = find_item_in_area(player)
-            player.set_action("PICKUP", item_to_pickup)
+    # try:
+    print(shortest_dist_to_enemy(player))
+    print(shortest_dist_to_item(player))
+    # Checking immediate area: 1 block in any direction
+    if find_enemy_in_area(player) is not None:
+        enemy_to_attack = find_enemy_in_area(player)
+        player.set_action("ATTACK", enemy_to_attack)
 
-        elif player.get_equipped_weapon() is None and len(player.get_weapons()) != 0:  # Gotta BE this
-            item_to_equip = player.get_weapons()[0]
-            player.set_action("EQUIP", item_to_equip)
+    elif find_item_in_area(player) is not None:
+        item_to_pickup = find_item_in_area(player)
+        player.set_action("PICKUP", item_to_pickup)
 
-        elif player.get_equipped_shield() is None and len(player.get_shields()) != 0:
-            item_to_equip = player.get_shields()[0]
-            player.set_action("EQUIP", item_to_equip)
+    # Equipping first gear
+    elif player.get_equipped_weapon() is None and len(player.get_weapons()) != 0:
+        item_to_equip = player.get_weapons()[0]
+        player.set_action("EQUIP", item_to_equip)
 
-        elif len(find_items_by_range(player)) != 0:
-            target = find_items_by_range(player)
-            player.set_action("MOVE", target[0].get_position())
+    elif player.get_equipped_shield() is None and len(player.get_shields()) != 0:
+        item_to_equip = player.get_shields()[0]
+        player.set_action("EQUIP", item_to_equip)
 
-        elif find_enemy_in_area(player) is not None:
-            enemy_to_attack = find_enemy_in_area(player)
-            player.set_action("ATTACK", enemy_to_attack)
+    elif shortest_dist_to_enemy(player) <= shortest_dist_to_item(player):
+        target = find_enemies_by_range(player)
+        player.set_action("MOVE", target[0].get_position())
 
-        elif len(find_enemies_by_range(player)) != 0:
-            target = find_enemies_by_range(player)
-            player.set_action("MOVE", target[0].get_position())
+    # Checks if there is items and goes for them
+    elif len(find_items_by_range(player)) != 0:
+        target = find_items_by_range(player)
+        player.set_action("MOVE", target[0].get_position())
 
-        else:
-            player.set_action("STAY", player.get_position())
+    # Check if there is enemies and goes for them
+    elif len(find_enemies_by_range(player)) != 0:
+        target = find_enemies_by_range(player)
+        player.set_action("MOVE", target[0].get_position())
 
-        return player.get_action()
-    except:
-        print("Object is dead")
+    # Compare and equp weapons/shields code:
+    elif player.get_equipped_weapon() is not None and len(player.get_weapons()) > 1 and player.get_has_new_weapon():
+        item_to_equip = player.get_max_weapon_damage()
+        player.set_action("EQUIP", item_to_equip)
+        player.print_inventory()
+
+    else:
+        player.set_action("STAY", player.get_position())
+
+    return player.get_action()
+    # except:
+    #     print("Object is dead")
 
 
 def get_enemy_decision(enemy):
@@ -496,9 +732,14 @@ def get_enemy_decision(enemy):
         if find_enemy_in_area(enemy) is not None:
             enemy_to_attack = find_enemy_in_area(enemy)
             enemy.set_action("ATTACK", enemy_to_attack)
-        elif len(find_enemies_by_range(enemy)) != 0:
-            target = find_enemies_by_range(enemy)
+
+        elif len(find_enemies_in_range(enemy, 4)) != 0:
+            target = find_enemies_in_range(enemy, 4)
             enemy.set_action("MOVE", target[0].get_position())
+
+        # elif len(find_enemies_by_range(enemy)) != 0:
+        #     target = find_enemies_by_range(enemy)
+        #     enemy.set_action("MOVE", target[0].get_position())
         else:
             enemy.set_action("STAY", enemy.get_position())
 
@@ -508,6 +749,7 @@ def get_enemy_decision(enemy):
         print("Object is dead")
 
 # Set up
+time.sleep(1)
 counter = 0
 counter_two = 0
 turn_count = 0
@@ -572,7 +814,7 @@ while True:
                 object_position = character.get_position()
                 type_of_action, value = character.get_action()
                 print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_current_health()))
-
+                #print(character.get_name() + " defense is " + str(character.get_defense()))
                 if type_of_action == "ATTACK":
                     if_action_attack(character)
                 if type_of_action == "MOVE":

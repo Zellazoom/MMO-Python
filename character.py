@@ -4,8 +4,7 @@ import random
 
 
 class Character:
-    def __init__(self, identifier, image, name, health, defense, accuracy, agility,
-                 attack, speed, is_dead, position, starting_weapon, starting_xp, death_xp):
+    def __init__(self, identifier, image, name, max_health, defense, accuracy, agility, attack, speed, is_dead, position, starting_weapon, starting_xp, death_xp):
         self.identifier = identifier
         self.name = name
         self.image = image
@@ -14,12 +13,12 @@ class Character:
         self.position = position
         self.damage = 4
         self.hit_chance = 80
-        self.health = health
-        if self.health > 100:
-            self.health = 100
-        elif self.health < 0:
-            self.health = 0
-        self.current_health = health
+        self.max_health = max_health
+        self.current_health = max_health
+        if self.current_health > self.max_health:
+            self.current_health = self.max_health
+        elif self.current_health < 0:
+            self.current_health = 0
         self.defense = defense
         self.accuracy = accuracy
         self.agility = agility
@@ -42,15 +41,15 @@ class Character:
         self.armor = None
         self.boots = None
 
+        self.no_new_weapon = True
         self.weapon = starting_weapon
         self.shield = None
         self.trinket = None
         self.active_potion = None
 
         # self.item = item
-        self.inventory = []
         self.defensive_items = [self.shield, self.boots, self.armor, self.hat, self.trinket, self.active_potion]
-        #self.defensive_items = ["SHIELD", "BOOTS", "ARMOR", "HAT", "TRINKET", "ACTIVE_POTION"]
+        self.defensive_item_types = ["SHIELD", "BOOTS", "ARMOR", "HAT", "TRINKET", "ACTIVE_POTION"]
 
         # First wearable in each slot is equipped (One of each)
         self.wearable_inventory = {"HAT": [], "NECKLACE": [], "ARMOR": [], "BOOTS": []}  # Hat, necklace, armor, shoes
@@ -60,12 +59,13 @@ class Character:
 
         # No equipped items. All items in this are a one time use
         self.potion_inventory = {"DAMAGE_POTION": [], "HEALING_POTION": [],
-                                 "SPEED_POTION": [], "DEFENCE_POTION": []}  # Damage, healing, speed
+                                 "SPEED_POTION": [], "DEFENSE_POTION": []}  # Damage, healing, speed
 
         # 1 Trinket can be equipped at a time from any of the groups
         self.trinket_inventory = {"DAMAGE_TRINKET": [], "HEALING_TRINKET": [],
-                                  "SPEED_TRINKET": [], "DEFENCE_TRINKET": []}  # Damage, healing, speed
+                                  "SPEED_TRINKET": [], "DEFENSE_TRINKET": []}  # Damage, healing, speed
 
+        self.inventory_types = ["WEARABLE", "WEAPON", "POTION", "TRINKET"]
         self.inventory = [self.wearable_inventory, self.weapon_inventory, self.potion_inventory, self.trinket_inventory]
 
 
@@ -99,11 +99,10 @@ class Character:
         return self.type, self.value
 
     def get_health(self):
-        return self.health
+        return self.current_health
 
-    def add_health(self, added_health):
-        self.health += added_health
-        self.current_health += added_health
+    def add_max_health(self, added_health):
+        self.max_health += added_health
 
     def get_current_health(self):
         return self.current_health
@@ -121,15 +120,16 @@ class Character:
             if item is not None:
                 try:
                     defense += item.get_defense()
-                    print(str(item.get_name()) + str(item.get_defense()))
+                    #print(str(item.get_name()) + str(item.get_defense()))
                 except:
                     pass
             else:
                 pass
-        print(defense)
+        #print(defense)
         self.defense = defense
 
     def get_defense(self):
+        self.compute_defense()
         return self.defense
 
     def get_accuracy(self):
@@ -175,6 +175,12 @@ class Character:
     def set_speed(self, speed):
         self.speed = speed
 
+    def set_has_new_weapon(self, boolean):
+        self.no_new_weapon = boolean
+
+    def get_has_new_weapon(self):
+        return self.no_new_weapon
+
     def get_weapon_damage(self):
         if self.weapon is not None:
             weapon_damage = self.weapon.get_damage()
@@ -197,13 +203,15 @@ class Character:
 
     def set_position(self, position):
         self.position = position
+        self.rect = pygame.Rect(position[0] * 16, position[1] * 16, 16, 16)
 
     def get_position(self):
         return self.position
 
     def level_up(self):
         print(self.get_name() + " leveled up!")
-        self.add_health(2)
+        self.add_max_health(2)
+        self.current_health = self.max_health
         print("+2 Max Health")
         increased_stat = random.randint(1, 3)
         if increased_stat == 1:
@@ -233,6 +241,34 @@ class Character:
                 list = dict.get(item.get_type())
                 list.append(item)
                 dict[item.get_type()] = list
+                if len(list) == 1:
+                    setattr(self, item.get_type().lower(), item)
+                    list.remove(item)
+                    list.insert(0, item)
+                    print("SETTING_ITEM: " + item.get_name())
+                    if item.get_type() == "WEAPON":
+                        self.set_image(item.get_player_image())
+                    break
+            except:
+                pass
+
+    def set_item(self, item):
+        for dict in self.inventory:
+            try:
+                list = dict.get(item.get_type())
+                if item in list:
+                    setattr(self, item.get_type().lower(), item)
+                    list.remove(item)
+                    list.insert(0, item)
+                    print("SETTING_ITEM: " + item.get_name())
+                    if item.get_type() == "WEAPON":
+                        self.set_image(item.get_player_image())
+                    break
+                elif list == self.trinket_inventory:
+                    self.trinket = item
+                    break
+                else:
+                    print("Item can not be equipped")
             except:
                 pass
 
@@ -263,6 +299,36 @@ class Character:
         else:
             return None
 
+    def get_equipped_hat(self):
+        if self.hat is not None:
+            return self.hat
+        else:
+            return None
+
+    def get_equipped_necklace(self):
+        if self.necklace is not None:
+            return self.necklace
+        else:
+            return None
+
+    def get_equipped_armor(self):
+        if self.armor is not None:
+            return self.armor
+        else:
+            return None
+
+    def get_equipped_boots(self):
+        if self.boots is not None:
+            return self.boots
+        else:
+            return None
+
+    def get_equipped_trinket(self):
+        if self.trinket is not None:
+            return self.trinket
+        else:
+            return None
+
     def get_inventory(self):
         return self.inventory
 
@@ -276,12 +342,52 @@ class Character:
         shield_list = shield_dict.get("SHIELD")
         return shield_list
 
+    def get_hats(self):
+        hats_dict = self.inventory[0]
+        hats_list = hats_dict.get("HAT")
+        return hats_list
+
+    def get_necklaces(self):
+        necklace_dict = self.inventory[0]
+        necklace_list = necklace_dict.get("NECKLACE")
+        return necklace_list
+
+    def get_armor(self):
+        armor_dict = self.inventory[0]
+        armor_list = armor_dict.get("ARMOR")
+        return armor_list
+
+    def get_boots(self):
+        boots_dict = self.inventory[0]
+        boots_list = boots_dict.get("BOOTS")
+        return boots_list
+
+    def get_potions(self):
+        potions_list = []
+        potions_dict = self.inventory[2]
+        potions_list.extend(potions_dict.get("DAMAGE_POTION"))
+        potions_list.extend(potions_dict.get("HEALING_POTION"))
+        potions_list.extend(potions_dict.get("SPEED_POTION"))
+        potions_list.extend(potions_dict.get("DEFENSE_POTION"))
+        return potions_list
+
+    def get_trinkets(self):
+        trinkets_list = []
+        trinkets_dict = self.inventory[3]
+        trinkets_list.extend(trinkets_dict.get("DAMAGE_TRINKET"))
+        trinkets_list.extend(trinkets_dict.get("HEALING_TRINKET"))
+        trinkets_list.extend(trinkets_dict.get("SPEED_TRINKET"))
+        trinkets_list.extend(trinkets_dict.get("DEFENSE_TRINKET"))
+        return trinkets_list
+
     def set_item(self, item):
         for dict in self.inventory:
             try:
                 list = dict.get(item.get_type())
                 if item in list:
                     setattr(self, item.get_type().lower(), item)
+                    list.remove(item)
+                    list.insert(0, item)
                     print("SETTING_ITEM: " + item.get_name())
                     if item.get_type() == "WEAPON":
                         self.set_image(item.get_player_image())
@@ -293,14 +399,74 @@ class Character:
                     print("Item can not be equipped")
             except:
                 pass
+        self.print_inventory()
         self.compute_defense()
 
+
+    def get_max_weapon_damage(self):
+        try:
+            weapon_list = self.get_weapons()
+            max_weapon = weapon_list[0]
+            for weapon in weapon_list:
+                if weapon.get_weapon_damage() > max_weapon.get_weapon_damage():
+                    max_weapon = weapon
+        except:
+            print("CNSNSNSNSNNSNSNDKSCNK")
+        return max_weapon
+
     def print_inventory(self):
-        for dict in self.inventory:
-            for key, val in dict.items():
-                print(key + ": ")
-                for i in val:
-                    print("    " + i.get_name())
+        for type in self.inventory_types:
+            self.print_inventory_of_type(type)
+
+    def print_inventory_of_type(self, type_of_inventory):
+        tab_space = 2
+        if type_of_inventory is not None:
+            if type_of_inventory == "WEARABLE":
+                dictionary = self.wearable_inventory
+            elif type_of_inventory == "WEAPON":
+                dictionary = self.weapon_inventory
+            elif type_of_inventory == "POTION":
+                dictionary = self.potion_inventory
+            elif type_of_inventory == "TRINKET":
+                dictionary = self.trinket_inventory
+            else:
+                print("There was no type: " + str(type_of_inventory))
+                self.print_inventory()
+                return
+            length_of_string = 20
+            lengths = {key: len(value) for key, value in dictionary.items()}
+            max_length = lengths.get(max(lengths, key=lengths.get)) + 1
+            for i in range(max_length):
+                temp = '|'
+                if i != 0:
+                    for key, val in dictionary.items():
+                        if val is not None:
+                            stat = 0
+                            if len(val) > i - 1:
+                                if val[i - 1].get_type() == "WEAPON":
+                                    stat = val[i - 1].get_weapon_damage()
+                                elif val[i - 1].get_type() in self.defensive_item_types:
+                                    stat = val[i - 1].get_defense()
+                                temp += " " * tab_space + "•" + str(val[i - 1].get_name()) + "." * (length_of_string - len(str(val[i - 1].get_name())) - tab_space - 1 - len(str(stat))) + str(stat)
+                            else:
+                                temp += " " * length_of_string
+                        else:
+                            temp += " " * length_of_string
+                        temp += "|"
+                else:
+                    for key, val in dictionary.items():
+                        if len(key) > i:
+                            if key == "WEAPON" or key == "SHIELD":
+                                temp += str(key) + "S:" + " " * (length_of_string - len(str(key)) - 2)
+                            else:
+                                temp += str(key) + ":" + " " * (length_of_string - len(str(key))-1)
+                        else:
+                            temp += " " * length_of_string + "|"
+                        temp += "|"
+                print(temp)
+        else:
+            self.print_inventory()
+
 
     # XP RANKING METHODS
     def get_xp(self):

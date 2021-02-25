@@ -1,7 +1,9 @@
-import pygame, os
+import os
+import pygame
 
 # The number of frames the longest animation has
 animationFrames = 12
+
 
 class Graphics:
 
