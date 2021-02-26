@@ -210,9 +210,9 @@ class Character:
 
     def level_up(self):
         print(self.get_name() + " leveled up!")
-        self.add_max_health(2)
+        self.add_max_health(5)
         self.current_health = self.max_health
-        print("+2 Max Health")
+        print("+5 Max Health")
         increased_stat = random.randint(1, 3)
         if increased_stat == 1:
             self.add_accuracy(1)
@@ -476,11 +476,14 @@ class Character:
         return self.current_rank
 
     def add_xp(self, num):
+        before_rank = self.current_rank
         self.character_xp += num
         if self.character_xp < 100:
             self.current_rank = 1
-        if self.character_xp >= 100:
+        if self.character_xp >= 100 * self.current_rank:
             self.current_rank = int(np.log(self.character_xp / 100) / np.log(2)) + 1
+        if self.current_rank > before_rank:
+            self.level_up()
 
     def get_death_xp(self):
         return self.death_xp
