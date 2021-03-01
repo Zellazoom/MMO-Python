@@ -123,14 +123,14 @@ def load_new_map(path, items, enemy_weapons):
 
 
 items = []
-item2 = Item("Spear", "WEAPON", 6, 0, 90, True, item_img, spear_character_img, [0, 0], None)  # [10, 6]
-item3 = Item("Leather Armor", "ARMOR", 0, 5, 0, True, item_img, None, [0, 0], None)  # [20, 3]"Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None
-item4 = Item("Shield", "SHIELD", 0, 3, 0, True, item_img, None, [0, 0], None)  #[15, 6]
-item5 = Item("Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None) #[20, 6]
-item6 = Item("Hat", "HAT", 0, 1, 0, True, item_img, None, [0, 0], None)  #[15, 6]
-item7 = Item("Boots", "BOOTS", 0, 2, 0, True, item_img, None, [0, 0], None) #[20, 6]
+item2 = Item("Spear", "WEAPON", 6, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)  # [10, 6]
+item3 = Item("Leather Armor", "ARMOR", 0, 5, 0, 0, True, item_img, None, [0, 0], None)  # [20, 3]"Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None
+item4 = Item("Shield", "SHIELD", 0, 3, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
+item5 = Item("Boots", "BOOTS", 0, 1, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
+item6 = Item("Helmet", "HELMET", 0, 1, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
+item7 = Item("Boots", "BOOTS", 0, 2, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
 
-item1 = Item("Spear", "WEAPON", 10, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+item1 = Item("Spear", "WEAPON", 10, 0, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
 
 
 items.append(item2)
@@ -173,7 +173,6 @@ true_scroll = [0, 0]
 
 speed = 2
 drop_proc = 4
-# Problem with pushing to master: git pull origin master
 
 
 def get_map_dimensions(path):
@@ -547,7 +546,7 @@ def attack(attacker, attacked):
     # print("Attack Bonus:" + str(attacker.get_attack_bonus()))
     # If the attack hits set the damage, otherwise it stays at 0
     if random.randint(1, 100) <= hit_percentage:
-        damage = max(0, attacker.get_weapon_damage() + attacker.get_attack_bonus() - attacked.get_defense())
+        damage = max(0, attacker.get_damage() + attacker.get_attack_bonus() - attacked.get_defense())
         #print(attacked.get_defense())
         # Checks for critical strike
         if random.randint(1, 10) <= (attacker.get_accuracy() - attacked.get_agility()):
@@ -671,55 +670,67 @@ def if_action_equip(object):
 
 
 def get_player_decision(player):
-    try:
-        # Checking immediate area: 1 block in any direction
-        if find_enemy_in_area(player) is not None:
-            enemy_to_attack = find_enemy_in_area(player)
-            player.set_action("ATTACK", enemy_to_attack)
+    # Compare and equip weapons/shields code:
 
-        elif find_item_in_area(player) is not None:
-            item_to_pickup = find_item_in_area(player)
-            player.set_action("PICKUP", item_to_pickup)
+    a = True if player.get_equipped_weapon() is not None else False
+    if a:
+        b = len(player.get_weapons()) > 1
+        c = player.get_has_new_weapon()
+        item_to_equip = player.get_max_weapon_damage()
+        d = False if item_to_equip == player.get_equipped_weapon() else True
+        var = a and b and c and d
+    else:
+        var = False
 
-        # Equipping first gear
-        elif player.get_equipped_weapon() is None and len(player.get_weapons()) != 0:
-            item_to_equip = player.get_weapons()[0]
-            player.set_action("EQUIP", item_to_equip)
+    #try:
+    # Checking immediate area: 1 block in any direction
+    if find_enemy_in_area(player) is not None:
+        enemy_to_attack = find_enemy_in_area(player)
+        player.set_action("ATTACK", enemy_to_attack)
 
-        elif player.get_equipped_shield() is None and len(player.get_shields()) != 0:
-            item_to_equip = player.get_shields()[0]
-            player.set_action("EQUIP", item_to_equip)
+    elif find_item_in_area(player) is not None:
+        item_to_pickup = find_item_in_area(player)
+        player.set_action("PICKUP", item_to_pickup)
 
-        elif player.get_equipped_hat() is None and len(player.get_hats()) != 0:
-            item_to_equip = player.get_hats()[0]
-            player.set_action("EQUIP", item_to_equip)
+    # Equipping first gear
+    elif player.get_equipped_weapon() is None and len(player.get_weapons()) != 0:
+        item_to_equip = player.get_weapons()[0]
+        player.set_action("EQUIP", item_to_equip)
 
-        elif (str(shortest_dist_to_item(player)) != 'inf' and str(shortest_dist_to_item(player)) != 'inf') and (shortest_dist_to_enemy(player) <= shortest_dist_to_item(player)):
-            target = find_enemies_by_range(player)
-            player.set_action("MOVE", target[0].get_position())
+    elif player.get_equipped_shield() is None and len(player.get_shields()) != 0:
+        item_to_equip = player.get_shields()[0]
+        player.set_action("EQUIP", item_to_equip)
 
-        # Checks if there is items and goes for them
-        elif len(find_items_by_range(player)) != 0:
-            target = find_items_by_range(player)
-            player.set_action("MOVE", target[0].get_position())
+    elif player.get_equipped_helmet() is None and len(player.get_helmets()) != 0:
+        item_to_equip = player.get_helmets()[0]
+        player.set_action("EQUIP", item_to_equip)
 
-        # Check if there is enemies and goes for them
-        elif len(find_enemies_by_range(player)) != 0:
-            target = find_enemies_by_range(player)
-            player.set_action("MOVE", target[0].get_position())
+    elif var:
+        player.set_action("EQUIP", item_to_equip)
+        player.print_inventory()
 
-        # Compare and equp weapons/shields code:
-        elif player.get_equipped_weapon() is not None and len(player.get_weapons()) > 1 and player.get_has_new_weapon():
-            item_to_equip = player.get_max_weapon_damage()
-            player.set_action("EQUIP", item_to_equip)
-            player.print_inventory()
+    # This checks if enemies are closer than chest in the area
+    elif (str(shortest_dist_to_item(player)) != 'inf' and str(shortest_dist_to_item(player)) != 'inf') and (shortest_dist_to_enemy(player) <= shortest_dist_to_item(player)):
+        target = find_enemies_by_range(player)
+        player.set_action("MOVE", target[0].get_position())
 
-        else:
-            player.set_action("STAY", player.get_position())
 
-        return player.get_action()
-    except:
-        print("Object is dead")
+    # Checks if there is items and goes for them
+    elif len(find_items_by_range(player)) != 0:
+        target = find_items_by_range(player)
+        player.set_action("MOVE", target[0].get_position())
+
+    # Check if there is enemies and goes for them
+    elif len(find_enemies_by_range(player)) != 0:
+        target = find_enemies_by_range(player)
+        player.set_action("MOVE", target[0].get_position())
+
+    else:
+        player.set_action("STAY", player.get_position())
+
+    return player.get_action()
+    # except:
+    #     print("Object is dead")
 
 
 def get_enemy_decision(enemy):

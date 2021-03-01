@@ -27,7 +27,7 @@ class Character:
         self.type = "MOVE"
         self.value = [0, 0]
 
-        self.death_xp = death_xp  # Amount of xp that is dropped when they are killed
+        self.death_xp = death_xp  # Amount of xp thelmet is dropped when they are killed
         self.character_xp = starting_xp
         if self.character_xp < 100:
             self.current_rank = 0
@@ -36,7 +36,7 @@ class Character:
             self.current_rank = int(np.log(self.character_xp/100)/np.log(2)) + 1
         self.next_rank = self.current_rank + 1
 
-        self.hat = None
+        self.helmet = None
         self.necklace = None
         self.armor = None
         self.boots = None
@@ -48,11 +48,11 @@ class Character:
         self.active_potion = None
 
         # self.item = item
-        self.defensive_items = [self.shield, self.boots, self.armor, self.hat, self.trinket, self.active_potion]
-        self.defensive_item_types = ["SHIELD", "BOOTS", "ARMOR", "HAT", "TRINKET", "ACTIVE_POTION"]
+        self.defensive_items = [self.shield, self.boots, self.armor, self.helmet, self.trinket, self.active_potion]
+        self.defensive_item_types = ["SHIELD", "BOOTS", "ARMOR", "HELMET", "TRINKET", "ACTIVE_POTION"]
 
         # First wearable in each slot is equipped (One of each)
-        self.wearable_inventory = {"HAT": [], "NECKLACE": [], "ARMOR": [], "BOOTS": []}  # Hat, necklace, armor, shoes
+        self.wearable_inventory = {"HELMET": [], "NECKLACE": [], "ARMOR": [], "BOOTS": []}  # helmet, necklace, armor, shoes
 
         # First item in each slot is equipped (One of each)
         self.weapon_inventory = {"WEAPON": [], "SHIELD": []}  # Weapons, shields
@@ -114,13 +114,12 @@ class Character:
             self.is_dead = True
 
     def compute_defense(self):
-        self.defensive_items = [self.shield, self.boots, self.armor, self.hat, self.trinket, self.active_potion]
+        self.defensive_items = [self.shield, self.boots, self.armor, self.helmet, self.trinket, self.active_potion]
         defense = 0
         for item in self.defensive_items:
             if item is not None:
                 try:
                     defense += item.get_defense()
-                    #print(str(item.get_name()) + str(item.get_defense()))
                 except:
                     pass
             else:
@@ -181,19 +180,20 @@ class Character:
     def get_has_new_weapon(self):
         return self.no_new_weapon
 
-    def get_weapon_damage(self):
+    def get_damage(self):
         if self.weapon is not None:
-            weapon_damage = self.weapon.get_damage()
-            magic_damage = 0
-            if self.weapon.get_magic_type() is not None:
-                if self.weapon.get_magic_type() == "DAMAGE":
-                    magic_damage = self.weapon.get_magic()[1]
-                else:
-                    pass
-            else:
-                pass
-
-            return weapon_damage + magic_damage
+            return self.weapon.get_damage()
+            # weapon_damage = self.weapon.get_damage()
+            # magic_damage = 0
+            # if self.weapon.get_magic_type() is not None:
+            #     if self.weapon.get_magic_type() == "DAMAGE":
+            #         magic_damage = self.weapon.get_magic()[1]
+            #     else:
+            #         pass
+            # else:
+            #     pass
+            #
+            # return weapon_damage + magic_damage
         else:
             return self.damage
 
@@ -299,9 +299,9 @@ class Character:
         else:
             return None
 
-    def get_equipped_hat(self):
-        if self.hat is not None:
-            return self.hat
+    def get_equipped_helmet(self):
+        if self.helmet is not None:
+            return self.helmet
         else:
             return None
 
@@ -342,10 +342,10 @@ class Character:
         shield_list = shield_dict.get("SHIELD")
         return shield_list
 
-    def get_hats(self):
-        hats_dict = self.inventory[0]
-        hats_list = hats_dict.get("HAT")
-        return hats_list
+    def get_helmets(self):
+        helmets_dict = self.inventory[0]
+        helmets_list = helmets_dict.get("HELMET")
+        return helmets_list
 
     def get_necklaces(self):
         necklace_dict = self.inventory[0]
@@ -408,7 +408,7 @@ class Character:
             weapon_list = self.get_weapons()
             max_weapon = weapon_list[0]
             for weapon in weapon_list:
-                if weapon.get_weapon_damage() > max_weapon.get_weapon_damage():
+                if weapon.get_damage() > max_weapon.get_damage():
                     max_weapon = weapon
         except:
             print("CNSNSNSNSNNSNSNDKSCNK")
@@ -444,7 +444,7 @@ class Character:
                             stat = 0
                             if len(val) > i - 1:
                                 if val[i - 1].get_type() == "WEAPON":
-                                    stat = val[i - 1].get_weapon_damage()
+                                    stat = val[i - 1].get_damage()
                                 elif val[i - 1].get_type() in self.defensive_item_types:
                                     stat = val[i - 1].get_defense()
                                 temp += " " * tab_space + "•" + str(val[i - 1].get_name()) + "." * (length_of_string - len(str(val[i - 1].get_name())) - tab_space - 1 - len(str(stat))) + str(stat)
@@ -489,7 +489,7 @@ class Character:
         return self.death_xp
 
     def update_self(self):
-        self.defensive_items = [self.shield, self.boots, self.armor, self.hat, self.trinket, self.active_potion]
+        self.defensive_items = [self.shield, self.boots, self.armor, self.helmet, self.trinket, self.active_potion]
 
         # pass  # Stuff that can happen every round for later use like health regen or something
         # Try two Ways for magical stuff:

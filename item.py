@@ -2,19 +2,20 @@ import pygame
 
 
 class Item(pygame.sprite.Sprite):
-    def __init__(self, name, item_type, damage, defense, hit_chance, is_on_ground, image, player_image, position, magic):
+    def __init__(self, name, item_type, damage, defense, health, hit_chance, is_on_ground, image, player_image, position, magic):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
         self.item_type = item_type  # Can be weapon, wearable, potion, trinket
         self.damage = damage
         self.defense = defense
+        self.health = health
         self.hit_chance = hit_chance
         self.is_on_ground = is_on_ground
         self.image = image
         self.player_image = player_image
         self.position = position
         self.rect = pygame.Rect(self.position[0] * 16, self.position[1] * 16, 16, 16)
-        self.magic = magic  # if none, magic = None
+        self.magic = magic  # if none, magic = None else ["DAMAGE", 2] / ["DEFENSE", 3] / ["HEALTH", 5]
 
     def set_name(self, name):
         self.name = name
@@ -29,13 +30,28 @@ class Item(pygame.sprite.Sprite):
         self.damage = damage
 
     def get_damage(self):
-        return self.damage
+        magic_damage = 0
+        if self.magic is not None and self.magic[0] == "DAMAGE":
+            magic_damage = self.magic[1]
+        return self.damage + magic_damage
 
     def set_defense(self, defense):
         self.defense = defense
 
     def get_defense(self):
-        return self.defense
+        magic_defense = 0
+        if self.magic is not None and self.magic[0] == "DEFENSE":
+            magic_defense = self.magic[1]
+        return self.defense + magic_defense
+
+    def set_health(self, health):
+        self.health = health
+
+    def get_health(self):
+        magic_health = 0
+        if self.magic is not None and self.magic[0] == "HEALTH":
+            magic_health = self.magic[1]
+        return self.health + magic_health
 
     def set_hit_chance(self, hit_chance):
         self.hit_chance = hit_chance
@@ -87,15 +103,15 @@ class Item(pygame.sprite.Sprite):
     def set_magic(self, magic):
         self.magic = magic
 
-    def get_weapon_damage(self):
-        weapon_damage = self.get_damage()
-        magic_damage = 0
-        if self.get_magic_type() is not None:
-            if self.get_magic_type() == "DAMAGE":
-                magic_damage = self.get_magic()[1]
-            else:
-                pass
-        else:
-            pass
-
-        return weapon_damage + magic_damage
+    # def get_weapon_damage(self):
+    #     weapon_damage = self.get_damage()
+    #     magic_damage = 0
+    #     if self.get_magic_type() is not None:
+    #         if self.get_magic_type() == "DAMAGE":
+    #             magic_damage = self.get_magic()[1]
+    #         else:
+    #             pass
+    #     else:
+    #         pass
+    #
+    #     return weapon_damage + magic_damage
