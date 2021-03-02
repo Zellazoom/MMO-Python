@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
 import random
+from insertion_sort import insertion_sort
 
 
 class Character:
@@ -272,6 +273,14 @@ class Character:
             except:
                 pass
 
+        weapon_list = self.get_weapons()
+        new_list = []
+        for i in weapon_list:
+            new_list.append([i, i.get_damage()])
+
+        self.inventory[1]["WEAPON"] = insertion_sort(new_list)
+
+
     def set_item(self, item):
         for dict in self.inventory:
             try:
@@ -481,14 +490,8 @@ class Character:
         self.compute_speed()
 
     def get_max_weapon_damage(self):
-        try:
-            weapon_list = self.get_weapons()
-            max_weapon = weapon_list[0]
-            for weapon in weapon_list:
-                if weapon.get_damage() > max_weapon.get_damage():
-                    max_weapon = weapon
-        except:
-            print("CNSNSNSNSNNSNSNDKSCNK")
+        weapon_list = self.get_weapons()
+        max_weapon = weapon_list[0]
         return max_weapon
 
     def print_inventory(self):

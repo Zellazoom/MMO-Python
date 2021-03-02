@@ -17,8 +17,9 @@ FPS = 60
 pygame.display.set_caption('Pygame Platformer')
 
 WINDOW_SIZE = (1200, 800)
+SCREEN_SIZE = (600, 400)
 screen = pygame.display.set_mode(WINDOW_SIZE, 0, 32)  # initiate the window
-display = pygame.Surface((600, 400))  # used as the surface for rendering, which is scaled
+display = pygame.Surface(SCREEN_SIZE)  # used as the surface for rendering, which is scaled
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, 'images')
 graphics_folder = os.path.join(game_folder, 'Graphics')
@@ -44,9 +45,7 @@ def split(word):
     return [char for char in word]
 
 
-def enemy_values(enemy_type, difficulty, weapons): #enemy_type 1-2 & difficulty 1-3
-    #enemy1 = Enemy("Enemy1", enemy1_img, "Chad", 10, 0, 1, -1, 1, 1, False, [0, 0], item1, 0, 20)
-    #identifier, image, name, max_health, defense, accuracy, agility, attack, speed, is_dead, position, starting_weapon, starting_xp, death_xp
+def enemy_values(enemy_type, difficulty): #enemy_type 1-2 & difficulty 1-3
     identifier = "Enemy" + str(enemy_type)
     image = enemy1_img if enemy_type == 1 else enemy2_img
     name = "Enemy_" + str(random.randint(0, 10000))
@@ -58,14 +57,177 @@ def enemy_values(enemy_type, difficulty, weapons): #enemy_type 1-2 & difficulty 
     speed = max(1, difficulty - 1)
     is_dead = False
     position = [0, 0]
-    starting_weapon = weapons[0]
+    if enemy_type == 1:
+        enemy_type = 2
+    elif enemy_type == 2:
+        enemy_type = 1
+    else:
+        enemy_type = enemy_type
+    starting_weapon = enemy_weapon_creator(enemy_type, difficulty, 1)
     starting_xp = 0
     death_xp = 40 * difficulty
     enemy_characteristics = [identifier, image, name, max_health, defense, accuracy, agility, attack, speed, is_dead, position, starting_weapon, starting_xp, death_xp]
     return enemy_characteristics
 
 
-def load_new_map(path, items, enemy_weapons):
+def enemy_weapon_creator(enemy_type, difficulty, map):
+    name = "Spear"
+    item_type = "WEAPON"
+    damage = (enemy_type * difficulty * (map)) + 6
+    defense = 0
+    health = 0
+    speed = 0
+    length = 0
+    hit_chance = min(80 + (2 * enemy_type * difficulty * (map)), 100)
+    is_on_ground = False
+    image = item_img
+    player_image = spear_character_img
+    position = [0, 0]
+    if enemy_type == 1:
+        magic = None
+    elif enemy_type == 2:
+        if difficulty == 1:
+            magic = ["DAMAGE", 1]
+        elif difficulty == 2:
+            magic = ["DAMAGE", 2]
+        elif difficulty == 3:
+            magic = ["DAMAGE", 3]
+        else:
+            magic = ["DAMAGE", difficulty * enemy_type]
+    else:
+        magic = None
+    enemy_item = Item(name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position, magic)
+    return enemy_item
+
+
+def map_item_creator(map):
+    map_1_drop = [19, 38, 57, 76, 95, 96, 97, 100]
+    map_2_drop = [12, 12, 12, 12, 12, 14, 14, 12]
+    map_3_drop = [10, 10, 10, 10, 10, 20, 20, 10]
+    if map == 1:
+        map_drop = map_1_drop
+    elif map == 2:
+        map_drop = map_2_drop
+    elif map == 3:
+        map_drop = map_3_drop
+    else:
+        map_drop = map_1_drop
+
+    rand_int = random.randint(1, 100)
+    if rand_int <= map_drop[0]:  # Spear -------------------------------------------------------------------------------
+        name = "Spear"
+        item_type = "WEAPON"
+        damage = 5 + 5*map
+        defense = 0
+        health = 0
+        speed = 0
+        length = 0
+        hit_chance = min(100, 90+(2*map))
+        is_on_ground = False
+        image = item_img
+        player_image = spear_character_img
+        magic = ["DAMAGE", map*5]
+
+    elif map_drop[0] < rand_int <= map_drop[1]:  # Shield---------------------------------------------------------------
+        name = "Shield"
+        item_type = "SHIELD"
+        damage = 0
+        defense = 2*map
+        health = 0
+        speed = 0
+        length = 0
+        hit_chance = 0
+        is_on_ground = False
+        image = item_img
+        player_image = None
+        magic = ["DEFENSE", map * 2]
+    elif map_drop[1] < rand_int <= map_drop[2]:  # Helmet---------------------------------------------------------------
+        name = "Helment"
+        item_type = "HELMET"
+        damage = 0
+        defense = map
+        health = 0
+        speed = 0
+        length = 0
+        hit_chance = 0
+        is_on_ground = False
+        image = item_img
+        player_image = None
+        magic = None
+    elif map_drop[2] < rand_int <= map_drop[3]:  # Armor----------------------------------------------------------------
+        name = "Armor"
+        item_type = "ARMOR"
+        damage = 0
+        defense = 3*map
+        health = 0
+        speed = 0
+        length = 0
+        hit_chance = 0
+        is_on_ground = False
+        image = item_img
+        player_image = None
+        magic = None
+    elif map_drop[3] < rand_int <= map_drop[4]:  # Boots----------------------------------------------------------------
+        name = "Boots"
+        item_type = "BOOTS"
+        damage = 0
+        defense = map
+        health = 0
+        speed = map
+        length = 0
+        hit_chance = 0
+        is_on_ground = False
+        image = item_img
+        player_image = None
+        magic = None
+    elif map_drop[4] < rand_int <= map_drop[5]:  # Potions--------------------------------------------------------------
+        name = "Potion"
+        item_type = "NECKLACE"
+        damage = 0
+        defense = 0
+        health = 0
+        speed = 0
+        length = 10 * map
+        hit_chance = 0
+        is_on_ground = False
+        image = item_img
+        player_image = None
+        magic = ["HEALTH", 2*map]
+    elif map_drop[5] < rand_int <= map_drop[6]:  # Trinkets-------------------------------------------------------------
+        name = "Trinket"
+        item_type = "TRINKET"
+        damage = 0
+        defense = 0
+        health = 0
+        speed = 0
+        length = 0
+        hit_chance = 0
+        is_on_ground = False
+        image = item_img
+        player_image = None
+        magic = ["DAMAGE", 2 * map]
+    elif map_drop[6] < rand_int <= map_drop[7]:  # Necklace-------------------------------------------------------------
+        name = "Necklace"
+        item_type = "NECKLACE"
+        damage = 0
+        defense = 0
+        health = 0
+        speed = 0
+        length = 0
+        hit_chance = 0
+        is_on_ground = False
+        image = item_img
+        player_image = None
+        magic = ["HEALTH", 2*map]
+    else:
+        print("Problem with drop chances")
+
+    position = [0, 0]
+    item = Item(name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position, magic)
+    return item
+
+
+def load_new_map(path, items):
     f = open(path + '1.txt', 'r')
     data = f.read()
     f.close()
@@ -91,19 +253,8 @@ def load_new_map(path, items, enemy_weapons):
                 row = ''.join(row)
                 item_count += 1
             if str(k) == str(3):
-                vals = enemy_values(1, 2, enemy_weapons)
-                enemy1 = Enemy(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9], vals[10], vals[11], vals[12], vals[13])
-                # enemy1 = Enemy("Enemy1", enemy1_img, "Chad", 10, 0, 1, -1, 1, 1, False, [0, 0], item1, 0, 20)
-                enemy1.set_position([j, i])
-                enemies1.append(enemy1)
-                x = split(row)
-                x[j] = "0"
-                row = x
-                row = ''.join(row)
-                enemy1_count += 1
-            if str(k) == str(4):
                 #enemy2 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 1.5, -2, 1, 1, False, [20, 5], item1, 0, 10)
-                vals = enemy_values(2, 1, enemy_weapons)
+                vals = enemy_values(2, 1)
                 enemy2 = Enemy(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9],
                                vals[10], vals[11], vals[12], vals[13])
                 enemy2.set_position([j, i])
@@ -113,6 +264,19 @@ def load_new_map(path, items, enemy_weapons):
                 row = x
                 row = ''.join(row)
                 enemy2_count += 1
+
+            if str(k) == str(4):
+                vals = enemy_values(1, 2)
+                enemy1 = Enemy(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9], vals[10], vals[11], vals[12], vals[13])
+                # enemy1 = Enemy("Enemy1", enemy1_img, "Chad", 10, 0, 1, -1, 1, 1, False, [0, 0], item1, 0, 20)
+                enemy1.set_position([j, i])
+                enemies1.append(enemy1)
+                x = split(row)
+                x[j] = "0"
+                row = x
+                row = ''.join(row)
+                enemy1_count += 1
+
             else:
                 pass
             j += 1
@@ -124,12 +288,15 @@ def load_new_map(path, items, enemy_weapons):
 # name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position, magic):
 items = []
 item2 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)  # [10, 6]
+item3 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
+item4 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
+item5 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
 #item3 = Item("Leather Armor", "ARMOR", 0, 5, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 3]"Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None
 #item3 = Item("Attack Necklace", "NECKLACE", 0, 0, 0, 0, 0, 0, True, item_img, None, [0, 0], ["DAMAGE", 2])
 #item3 = Item("Hth_Potion", "HEALING_POTION", 0, 0, 0, 0, 10, 0, True, item_img, None, [0, 0], ["HEALTH", 5])
-item3 = Item("Spd_Potion", "SPEED_POTION", 0, 0, 0, 0, 20, 0, True, item_img, None, [0, 0], ["SPEED", 1])
-item4 = Item("Shield", "SHIELD", 0, 3, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
-item5 = Item("Boots", "BOOTS", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
+#item3 = Item("Spd_Potion", "SPEED_POTION", 0, 0, 0, 0, 20, 0, True, item_img, None, [0, 0], ["SPEED", 1])
+#item4 = Item("Shield", "SHIELD", 0, 3, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
+#item5 = Item("Boots", "BOOTS", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
 item6 = Item("Helmet", "HELMET", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
 item7 = Item("Boots", "BOOTS", 0, 2, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
 
@@ -149,7 +316,7 @@ player2 = Player("Player", player_img, "Yeet",   100, 0,  1, 0,  1, 2, False, [1
 #players.append(player1)
 players.append(player2)
 enemy_weapons = [item1]
-items, enemies1, enemies2 = load_new_map('map', items, enemy_weapons)
+items, enemies1, enemies2 = load_new_map('map', items)
 
 print("Testing enemies 1 postions")
 for i in enemies1:
@@ -175,7 +342,7 @@ for i in enemies2:
 true_scroll = [0, 0]
 
 speed = 2
-drop_proc = 4
+drop_proc = 10
 
 
 def get_map_dimensions(path):
@@ -727,10 +894,25 @@ def get_player_decision(player):
         item_to_activate = player.get_speed_potions()[0]
         player.set_action("ACTIVATE", item_to_activate)
 
+    # Equipping the better weapon
     elif var:
         item_to_equip = player.get_max_weapon_damage()
         player.set_action("EQUIP", item_to_equip)
         player.print_inventory()
+
+    elif len(player.get_weapons()) > 3:
+        num_to_drop = len(player.get_weapons()) - 3
+        print("Num to drop = " + str(num_to_drop))
+        player.set_action("STAY", player.get_position())
+        count = 0
+        for i in reversed(player.get_weapons()):
+            if count < num_to_drop:
+                player.drop_item(i)
+                count += 1
+            else:
+                pass
+
+
 
     # This checks if enemies are closer than chest in the area
     elif (str(shortest_dist_to_item(player)) != 'inf' and str(shortest_dist_to_item(player)) != 'inf') and (shortest_dist_to_enemy(player) <= shortest_dist_to_item(player)):
@@ -912,6 +1094,8 @@ while True:
         #     pygame.display.update()
         #     counter += 1
         #     clock.tick(FPS)
+
+
 
     if counter_two == FPS:
         counter_two = 0
