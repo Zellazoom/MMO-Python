@@ -2,20 +2,22 @@ import pygame
 
 
 class Item(pygame.sprite.Sprite):
-    def __init__(self, name, item_type, damage, defense, health, hit_chance, is_on_ground, image, player_image, position, magic):
+    def __init__(self, name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position, magic):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
         self.item_type = item_type  # Can be weapon, wearable, potion, trinket
         self.damage = damage
         self.defense = defense
         self.health = health
+        self.speed = speed
+        self.length = length
         self.hit_chance = hit_chance
         self.is_on_ground = is_on_ground
         self.image = image
         self.player_image = player_image
         self.position = position
         self.rect = pygame.Rect(self.position[0] * 16, self.position[1] * 16, 16, 16)
-        self.magic = magic  # if none, magic = None else ["DAMAGE", 2] / ["DEFENSE", 3] / ["HEALTH", 5]
+        self.magic = magic  # if none, magic = None else ["DAMAGE", 2] / ["DEFENSE", 3] / ["HEALTH", 5] / ["SPEED", 3]
 
     def set_name(self, name):
         self.name = name
@@ -52,6 +54,18 @@ class Item(pygame.sprite.Sprite):
         if self.magic is not None and self.magic[0] == "HEALTH":
             magic_health = self.magic[1]
         return self.health + magic_health
+
+    def set_speed(self, speed):
+        self.speed = speed
+
+    def get_speed(self):
+        magic_speed = 0
+        if self.magic is not None and self.magic[0] == "SPEED":
+            magic_speed = self.magic[1]
+        return self.speed + magic_speed
+
+    def get_length(self):
+        return self.length
 
     def set_hit_chance(self, hit_chance):
         self.hit_chance = hit_chance

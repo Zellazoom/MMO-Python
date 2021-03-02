@@ -121,16 +121,19 @@ def load_new_map(path, items, enemy_weapons):
     f.close()
     return items, enemies1, enemies2
 
-
+# name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position, magic):
 items = []
-item2 = Item("Spear", "WEAPON", 6, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)  # [10, 6]
-item3 = Item("Leather Armor", "ARMOR", 0, 5, 0, 0, True, item_img, None, [0, 0], None)  # [20, 3]"Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None
-item4 = Item("Shield", "SHIELD", 0, 3, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
-item5 = Item("Boots", "BOOTS", 0, 1, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
-item6 = Item("Helmet", "HELMET", 0, 1, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
-item7 = Item("Boots", "BOOTS", 0, 2, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
+item2 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)  # [10, 6]
+#item3 = Item("Leather Armor", "ARMOR", 0, 5, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 3]"Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None
+#item3 = Item("Attack Necklace", "NECKLACE", 0, 0, 0, 0, 0, 0, True, item_img, None, [0, 0], ["DAMAGE", 2])
+#item3 = Item("Hth_Potion", "HEALING_POTION", 0, 0, 0, 0, 10, 0, True, item_img, None, [0, 0], ["HEALTH", 5])
+item3 = Item("Spd_Potion", "SPEED_POTION", 0, 0, 0, 0, 20, 0, True, item_img, None, [0, 0], ["SPEED", 1])
+item4 = Item("Shield", "SHIELD", 0, 3, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
+item5 = Item("Boots", "BOOTS", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
+item6 = Item("Helmet", "HELMET", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
+item7 = Item("Boots", "BOOTS", 0, 2, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
 
-item1 = Item("Spear", "WEAPON", 10, 0, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 2])
+item1 = Item("Spear", "WEAPON", 5, 0, 0, 0, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 0])
 
 
 items.append(item2)
@@ -141,14 +144,14 @@ items.append(item6)
 items.append(item7)
 
 players = []
-player1 = Player("Player", player_img, "Andrew", 12, 0, -1, 0, -1, 1, False, [6, 6], None, 0, 20)
-player2 = Player("Player", player_img, "Yeet",   100, 0,  1, 0,  1, 2, False, [1, 3], None, 0, 20)
+player1 = Player("Player", player_img, "Andrew", 12, 0, -1, 0, -1, 1, False, [6, 6], None, 201, 20)
+player2 = Player("Player", player_img, "Yeet",   100, 0,  1, 0,  1, 2, False, [1, 3], None, 201, 20)
 #players.append(player1)
 players.append(player2)
 enemy_weapons = [item1]
 items, enemies1, enemies2 = load_new_map('map', items, enemy_weapons)
 
-print("Testing enemies 1 psotioins")
+print("Testing enemies 1 postions")
 for i in enemies1:
     print(i.get_position())
 
@@ -625,13 +628,6 @@ def if_action_attack(object):
                 pass
         else:
             pass
-        # level up code
-        # if object.get_rank() > initial_rank:
-        #     object.level_up()
-        #     print(object.get_xp())
-        #     initial_rank = initial_rank + 1
-        #     print("Player's rank after kill: " + object.get_xp() + ": " + object.get_rank())
-
     else:
         pass
 
@@ -639,7 +635,6 @@ def if_action_attack(object):
 def pickup(person, pickup_item):
     person.get_item(pickup_item)
     pickup_item.set_on_ground(False)
-    #person.print_inventory_of_type("WEAPON")
     person.print_inventory()
     try:
         items.remove(pickup_item)
@@ -652,6 +647,15 @@ def pickup(person, pickup_item):
 def if_action_pickup(object):
     action, item = object.get_action()
     pickup(object, item)
+
+
+def activate(person, activate_item):
+    person.set_active_potion(activate_item)
+
+
+def if_action_activate(object):
+    action, item = object.get_action()
+    activate(object, item)
 
 
 def rotate_list(list, num):
@@ -705,7 +709,26 @@ def get_player_decision(player):
         item_to_equip = player.get_helmets()[0]
         player.set_action("EQUIP", item_to_equip)
 
+    elif player.get_equipped_necklace() is None and len(player.get_necklaces()) != 0:
+        item_to_equip = player.get_necklaces()[0]
+        player.set_action("EQUIP", item_to_equip)
+
+    elif player.get_equipped_trinket() is None and len(player.get_all_trinkets()) != 0: # Change this bot code for trinkets it sucks
+        item_to_equip = player.get_all_trinkets()[0]
+        player.set_action("EQUIP", item_to_equip)
+
+    # Activating Health Potion
+    elif player.get_active_potion() is None and len(player.get_healing_potions()) != 0 and player.get_health() < 55: # Change this bot code for trinkets it sucks
+        item_to_activate = player.get_healing_potions()[0]
+        player.set_action("ACTIVATE", item_to_activate)
+
+    # Activating Speed Potion
+    elif player.get_active_potion() is None and len(player.get_speed_potions()) != 0:  # Change this bot code for trinkets it sucks
+        item_to_activate = player.get_speed_potions()[0]
+        player.set_action("ACTIVATE", item_to_activate)
+
     elif var:
+        item_to_equip = player.get_max_weapon_damage()
         player.set_action("EQUIP", item_to_equip)
         player.print_inventory()
 
@@ -828,6 +851,8 @@ while True:
                     if_action_pickup(character)
                 if type_of_action == "EQUIP":
                     if_action_equip(character)
+                if type_of_action == "ACTIVATE":
+                    if_action_activate(character)
 
                 game_map = load_map('map')
                 if isinstance(character, Player):

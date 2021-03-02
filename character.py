@@ -27,6 +27,9 @@ class Character:
         self.type = "MOVE"
         self.value = [0, 0]
 
+        self.start_round = None
+        self.round_counter = 0
+
         self.death_xp = death_xp  # Amount of xp thelmet is dropped when they are killed
         self.character_xp = starting_xp
         if self.character_xp < 100:
@@ -48,8 +51,11 @@ class Character:
         self.active_potion = None
 
         # self.item = item
-        self.defensive_items = [self.shield, self.boots, self.armor, self.helmet, self.trinket, self.active_potion]
-        self.defensive_item_types = ["SHIELD", "BOOTS", "ARMOR", "HELMET", "TRINKET", "ACTIVE_POTION"]
+        self.defensive_items = [self.helmet, self.necklace, self.armor, self.boots, self.weapon, self.shield, self.trinket, self.active_potion]
+        self.all_items = [self.helmet, self.necklace, self.armor, self.boots, self.weapon, self.shield, self.trinket, self.active_potion]
+        #self.defensive_items = [self.shield, self.boots, self.armor, self.helmet, self.trinket, self.active_potion]
+        #self.defensive_item_types = ["SHIELD", "BOOTS", "ARMOR", "HELMET", "TRINKET", "ACTIVE_POTION"]
+        self.defensive_item_types = ["HELMET", "NECKLACE", "ARMOR", "BOOTS", "WEAPON", "SHIELD", "TRINKET", "ACTIVE_POTION"]
 
         # First wearable in each slot is equipped (One of each)
         self.wearable_inventory = {"HELMET": [], "NECKLACE": [], "ARMOR": [], "BOOTS": []}  # helmet, necklace, armor, shoes
@@ -67,9 +73,6 @@ class Character:
 
         self.inventory_types = ["WEARABLE", "WEAPON", "POTION", "TRINKET"]
         self.inventory = [self.wearable_inventory, self.weapon_inventory, self.potion_inventory, self.trinket_inventory]
-
-
-
 
     def set_identifier(self, identifier):
         self.identifier = identifier
@@ -114,8 +117,9 @@ class Character:
             self.is_dead = True
 
     def compute_defense(self):
-        self.defensive_items = [self.shield, self.boots, self.armor, self.helmet, self.trinket, self.active_potion]
         defense = 0
+        self.defensive_items = [self.helmet, self.necklace, self.armor, self.boots, self.weapon, self.shield,
+                                self.trinket, self.active_potion]
         for item in self.defensive_items:
             if item is not None:
                 try:
@@ -124,12 +128,51 @@ class Character:
                     pass
             else:
                 pass
-        #print(defense)
-        self.defense = defense
+        defense = self.defense + defense
+        return defense
 
     def get_defense(self):
-        self.compute_defense()
-        return self.defense
+        defense = self.compute_defense()
+        return defense
+
+    def compute_speed(self):
+        speed = 0
+        self.all_items = [self.helmet, self.necklace, self.armor, self.boots, self.weapon, self.shield,
+                                self.trinket, self.active_potion]
+        for item in self.all_items:
+            if item is not None:
+                try:
+                    speed += item.get_speed()
+                except:
+                    pass
+            else:
+                pass
+        speed = self.speed + speed
+        return speed
+
+    def get_speed(self):
+        speed = self.compute_speed()
+        return speed
+
+    def compute_damage(self):
+        damage = 0
+        self.all_items = [self.helmet, self.necklace, self.armor, self.boots, self.weapon, self.shield, self.trinket,
+                          self.active_potion]
+        for item in self.all_items:
+            if item is not None:
+                print(str(item.get_name()))
+                damage += item.get_damage()
+            else:
+                pass
+        damage = self.damage + damage
+        return damage
+
+    def get_damage(self):
+        damage = self.compute_damage()
+        return damage
+
+    def set_speed(self, speed):
+        self.speed = speed
 
     def get_accuracy(self):
         return self.accuracy
@@ -168,34 +211,11 @@ class Character:
     def add_attack(self, added_attack):
         self.attack += added_attack
 
-    def get_speed(self):
-        return self.speed
-
-    def set_speed(self, speed):
-        self.speed = speed
-
     def set_has_new_weapon(self, boolean):
         self.no_new_weapon = boolean
 
     def get_has_new_weapon(self):
         return self.no_new_weapon
-
-    def get_damage(self):
-        if self.weapon is not None:
-            return self.weapon.get_damage()
-            # weapon_damage = self.weapon.get_damage()
-            # magic_damage = 0
-            # if self.weapon.get_magic_type() is not None:
-            #     if self.weapon.get_magic_type() == "DAMAGE":
-            #         magic_damage = self.weapon.get_magic()[1]
-            #     else:
-            #         pass
-            # else:
-            #     pass
-            #
-            # return weapon_damage + magic_damage
-        else:
-            return self.damage
 
     def set_action(self, type, value):
         self.type = type
@@ -263,6 +283,7 @@ class Character:
                     print("SETTING_ITEM: " + item.get_name())
                     if item.get_type() == "WEAPON":
                         self.set_image(item.get_player_image())
+
                     break
                 elif list == self.trinket_inventory:
                     self.trinket = item
@@ -271,6 +292,10 @@ class Character:
                     print("Item can not be equipped")
             except:
                 pass
+
+    def set_active_potion(self, item):
+        self.active_potion = item
+        self.start_round = self.round_counter
 
     def drop_item(self, item):
         # This might delete all of the instances of the item
@@ -329,6 +354,12 @@ class Character:
         else:
             return None
 
+    def get_active_potion(self):
+        if self.active_potion is not None:
+            return self.active_potion
+        else:
+            return None
+
     def get_inventory(self):
         return self.inventory
 
@@ -362,7 +393,7 @@ class Character:
         boots_list = boots_dict.get("BOOTS")
         return boots_list
 
-    def get_potions(self):
+    def get_all_potions(self):
         potions_list = []
         potions_dict = self.inventory[2]
         potions_list.extend(potions_dict.get("DAMAGE_POTION"))
@@ -371,12 +402,57 @@ class Character:
         potions_list.extend(potions_dict.get("DEFENSE_POTION"))
         return potions_list
 
-    def get_trinkets(self):
+    def get_damage_potions(self):
+        potions_list = []
+        potions_dict = self.inventory[2]
+        potions_list.extend(potions_dict.get("DAMAGE_POTION"))
+        return potions_list
+    def get_healing_potions(self):
+        potions_list = []
+        potions_dict = self.inventory[2]
+        potions_list.extend(potions_dict.get("HEALING_POTION"))
+        return potions_list
+    def get_speed_potions(self):
+        potions_list = []
+        potions_dict = self.inventory[2]
+        potions_list.extend(potions_dict.get("SPEED_POTION"))
+        return potions_list
+    def get_defense_potions(self):
+        potions_list = []
+        potions_dict = self.inventory[2]
+        potions_list.extend(potions_dict.get("DEFENSE_POTION"))
+        return potions_list
+
+    def get_all_trinkets(self):
         trinkets_list = []
         trinkets_dict = self.inventory[3]
         trinkets_list.extend(trinkets_dict.get("DAMAGE_TRINKET"))
         trinkets_list.extend(trinkets_dict.get("HEALING_TRINKET"))
         trinkets_list.extend(trinkets_dict.get("SPEED_TRINKET"))
+        trinkets_list.extend(trinkets_dict.get("DEFENSE_TRINKET"))
+        return trinkets_list
+
+    def get_damage_trinkets(self):
+        trinkets_list = []
+        trinkets_dict = self.inventory[3]
+        trinkets_list.extend(trinkets_dict.get("DAMAGE_TRINKET"))
+        return trinkets_list
+
+    def get_healing_trinkets(self):
+        trinkets_list = []
+        trinkets_dict = self.inventory[3]
+        trinkets_list.extend(trinkets_dict.get("HEALING_TRINKET"))
+        return trinkets_list
+
+    def get_speed_trinkets(self):
+        trinkets_list = []
+        trinkets_dict = self.inventory[3]
+        trinkets_list.extend(trinkets_dict.get("SPEED_TRINKET"))
+        return trinkets_list
+
+    def get_defense_trinkets(self):
+        trinkets_list = []
+        trinkets_dict = self.inventory[3]
         trinkets_list.extend(trinkets_dict.get("DEFENSE_TRINKET"))
         return trinkets_list
 
@@ -401,7 +477,8 @@ class Character:
                 pass
         self.print_inventory()
         self.compute_defense()
-
+        self.compute_damage()
+        self.compute_speed()
 
     def get_max_weapon_damage(self):
         try:
@@ -453,6 +530,7 @@ class Character:
                         else:
                             temp += " " * length_of_string
                         temp += "|"
+
                 else:
                     for key, val in dictionary.items():
                         if len(key) > i:
@@ -489,8 +567,29 @@ class Character:
         return self.death_xp
 
     def update_self(self):
-        self.defensive_items = [self.shield, self.boots, self.armor, self.helmet, self.trinket, self.active_potion]
+        self.defensive_items = [self.helmet, self.necklace, self.armor, self.boots, self.weapon, self.shield,
+                                self.trinket, self.active_potion]
+        self.all_items = [self.helmet, self.necklace, self.armor, self.boots, self.weapon, self.shield, self.trinket,
+                          self.active_potion]
+        if self.start_round is not None:
+            print(str(self.round_counter - self.start_round) + "=================================")
+        if self.start_round is not None and (self.round_counter - self.start_round) < self.active_potion.get_length():  # 10 is how many rounds, make into variable if works
+            if self.active_potion.item_type == "DAMAGE_POTION":
+                pass
+            elif self.active_potion.item_type == "HEALING_POTION":
+                self.add_current_health(self.active_potion.get_health())
+            elif self.active_potion.item_type == "SPEED_POTION":
+                pass
+            elif self.active_potion.item_type == "DEFENSE_POTION":
+                pass
+            else:
+                print("WARNING: POTIONS ARE NOT UPDATING ACCORDING TO PLAN")
+        else:
+            self.start_round = None
+            self.drop_item(self.active_potion)
+            self.active_potion = None
 
+        self.round_counter += 1
         # pass  # Stuff that can happen every round for later use like health regen or something
         # Try two Ways for magical stuff:
         # 1) put code in constructor of item
