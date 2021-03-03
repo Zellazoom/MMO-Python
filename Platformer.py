@@ -404,10 +404,10 @@ def get_map_dimensions(path):
     data = f.read()
     f.close()
     data = data.split('\n')
-    game_map = []
+    temp_game_map = []
     for row in data:
-        game_map.append(list(row))
-    map_dim = [len(game_map[0])-1, len(game_map)-1]
+        temp_game_map.append(list(row))
+    map_dim = [len(temp_game_map[0])-1, len(temp_game_map)-1]
     return map_dim
 
 
@@ -416,18 +416,16 @@ def load_map(path):
     data = f.read()
     f.close()
     data = data.split('\n')
-    game_map = []
+    temp_game_map = []
     for row in data:
-        game_map.append(list(row))
-    game_map = [[int(j) for j in i] for i in game_map]
-    return game_map
-
+        temp_game_map.append(list(row))
+    temp_game_map = [[int(j) for j in k] for k in temp_game_map]
+    return temp_game_map
 
 
 game_map_clean = load_map('map')
 game_map = load_map('map')
 map_dimensions = get_map_dimensions('map')
-
 
 
 def get_pixels_from_chunks(chunks):
@@ -440,24 +438,24 @@ def get_chunks_from_pixels(pixels):
 
 def collision_test(rect, tiles):
     hit_list = []
-    for tile in tiles:
-        if rect.colliderect(tile):
-            hit_list.append(tile)
+    for tile_block in tiles:
+        if rect.colliderect(tile_block):
+            hit_list.append(tile_block)
     return hit_list
 
 
 def check_open_square(coordinates):
-    x, y = coordinates[0], coordinates[1]
-    if x <= map_dimensions[0] and y <= map_dimensions[1]:
-        if game_map[y][x] == 0:
+    x_coord, y_coord = coordinates[0], coordinates[1]
+    if x_coord <= map_dimensions[0] and y_coord <= map_dimensions[1]:
+        if game_map[y_coord][x_coord] == 0:
             return True
-        elif game_map[y][x] == 1:
+        elif game_map[y_coord][x_coord] == 1:
             return False
-        elif game_map[y][x] == 2:
+        elif game_map[y_coord][x_coord] == 2:
             return False
-        elif game_map[y][x] == 3:
+        elif game_map[y_coord][x_coord] == 3:
             return False
-        elif game_map[y][x] == 4:
+        elif game_map[y_coord][x_coord] == 4:
             return False
     else:
         return False
@@ -466,15 +464,10 @@ def check_open_square(coordinates):
 def find_objects_around(coordinates):
     # Checks the full 8 squares around the player
     list_of_objects = []
-    list_of_coords = []
-    list_of_coords.append([coordinates[0], coordinates[1]+1])
-    list_of_coords.append([coordinates[0]+1, coordinates[1] + 1])
-    list_of_coords.append([coordinates[0]+1, coordinates[1]])
-    list_of_coords.append([coordinates[0]+1, coordinates[1] - 1])
-    list_of_coords.append([coordinates[0], coordinates[1] - 1])
-    list_of_coords.append([coordinates[0]-1, coordinates[1] - 1])
-    list_of_coords.append([coordinates[0]-1, coordinates[1]])
-    list_of_coords.append([coordinates[0]-1, coordinates[1] + 1])
+    list_of_coords = [[coordinates[0], coordinates[1] + 1], [coordinates[0] + 1, coordinates[1] + 1],
+                      [coordinates[0] + 1, coordinates[1]], [coordinates[0] + 1, coordinates[1] - 1],
+                      [coordinates[0], coordinates[1] - 1], [coordinates[0] - 1, coordinates[1] - 1],
+                      [coordinates[0] - 1, coordinates[1]], [coordinates[0] - 1, coordinates[1] + 1]]
     for object_around in objects:
         for coord in list_of_coords:
             if object_around.get_position() == [coord[0], coord[1]]:
