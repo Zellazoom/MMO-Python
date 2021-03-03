@@ -3,7 +3,7 @@ import sys
 import os
 from player import Player
 from enemy import Enemy
-from item_box import Item
+from item import Item
 from graphics import Graphics
 from pygame.locals import *
 import collections
@@ -856,12 +856,12 @@ def pickup(person, pickup_item):
     person.get_item(pickup_item)
     pickup_item.set_on_ground(False)
     person.print_inventory()
-    try:
-        items.remove(pickup_item)
-        objects.remove(pickup_item)
-        person.set_has_new_weapon(True)
-    finally:
-        print("Item is already removed.")
+    # try:
+    items.remove(pickup_item)
+    objects.remove(pickup_item)
+    person.set_has_new_weapon(True)
+    # finally:
+    #     print("Item is already removed.")
 
 
 def if_action_pickup(object_in_game):
@@ -992,25 +992,25 @@ def get_player_decision(player):
 
 
 def get_enemy_decision(enemy):
-    try:
-        if find_enemy_in_area(enemy) is not None:
-            enemy_to_attack = find_enemy_in_area(enemy)
-            enemy.set_action("ATTACK", enemy_to_attack)
+    # try:
+    if find_enemy_in_area(enemy) is not None:
+        enemy_to_attack = find_enemy_in_area(enemy)
+        enemy.set_action("ATTACK", enemy_to_attack)
 
-        elif len(find_enemies_in_range(enemy, 4)) != 0:
-            target = find_enemies_in_range(enemy, 4)
-            enemy.set_action("MOVE", target[0].get_position())
+    elif len(find_enemies_in_range(enemy, 4)) != 0:
+        target = find_enemies_in_range(enemy, 4)
+        enemy.set_action("MOVE", target[0].get_position())
 
-        # elif len(find_enemies_by_range(enemy)) != 0:
-        #     target = find_enemies_by_range(enemy)
-        #     enemy.set_action("MOVE", target[0].get_position())
-        else:
-            enemy.set_action("STAY", enemy.get_position())
+    # elif len(find_enemies_by_range(enemy)) != 0:
+    #     target = find_enemies_by_range(enemy)
+    #     enemy.set_action("MOVE", target[0].get_position())
+    else:
+        enemy.set_action("STAY", enemy.get_position())
 
-        return enemy.get_action()
+    return enemy.get_action()
 
-    finally:
-        print("Object is dead")
+    # except:
+    #     print("Object is dead")
 
 
 # Set up
