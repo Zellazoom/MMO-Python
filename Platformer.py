@@ -1,4 +1,6 @@
-import pygame, sys, os
+import pygame
+import sys
+import os
 from player import Player
 from enemy import Enemy
 from item import Item
@@ -14,7 +16,7 @@ clock = pygame.time.Clock()
 pygame.init()  # initiates pygame
 FPS = 60
 
-pygame.display.set_caption('Pygame Platformer')
+pygame.display.set_caption('Pygame Platform')
 
 WINDOW_SIZE = (1200, 800)
 SCREEN_SIZE = (600, 400)
@@ -45,302 +47,354 @@ def split(word):
     return [char for char in word]
 
 
-def enemy_values(enemy_type, difficulty): #enemy_type 1-2 & difficulty 1-3
-    identifier = "Enemy" + str(enemy_type)
-    image = enemy1_img if enemy_type == 1 else enemy2_img
-    name = "Enemy_" + str(random.randint(0, 10000))
-    max_health = 10 * difficulty
-    defense = 1 * difficulty
-    accuracy = difficulty / 2
-    agility = -2 + difficulty
-    attack = difficulty / 2
-    speed = max(1, difficulty - 1)
-    is_dead = False
-    position = [0, 0]
+def enemy_values(enemy_type, difficulty):  # enemy_type 1-2 & difficulty 1-3
+    enemy_identifier = "Enemy" + str(enemy_type)
+    enemy_image = enemy1_img if enemy_type == 1 else enemy2_img
+    enemy_name = "Enemy_" + str(random.randint(0, 10000))
+    enemy_max_health = 10 * difficulty
+    enemy_defense = 1 * difficulty
+    enemy_accuracy = difficulty / 2
+    enemy_agility = -2 + difficulty
+    enemy_attack = difficulty / 2
+    enemy_speed = max(1, difficulty - 1)
+    enemy_is_dead = False
+    enemy_position = [0, 0]
     if enemy_type == 1:
         enemy_type = 2
     elif enemy_type == 2:
         enemy_type = 1
     else:
         enemy_type = enemy_type
-    starting_weapon = enemy_weapon_creator(enemy_type, difficulty, 1)
-    starting_xp = 0
-    death_xp = 40 * difficulty
-    enemy_characteristics = [identifier, image, name, max_health, defense, accuracy, agility, attack, speed, is_dead, position, starting_weapon, starting_xp, death_xp]
+    enemy_starting_weapon = enemy_weapon_creator(enemy_type, difficulty, 1)
+    enemy_starting_xp = 0
+    enemy_death_xp = 40 * difficulty
+    enemy_characteristics = [enemy_identifier, enemy_image, enemy_name, enemy_max_health, enemy_defense, enemy_accuracy,
+                             enemy_agility, enemy_attack, enemy_speed, enemy_is_dead, enemy_position,
+                             enemy_starting_weapon, enemy_starting_xp, enemy_death_xp]
     return enemy_characteristics
 
 
-def enemy_weapon_creator(enemy_type, difficulty, map):
-    name = "Spear"
-    item_type = "WEAPON"
-    damage = (enemy_type * difficulty * (map)) + 6
-    defense = 0
-    health = 0
-    speed = 0
-    length = 0
-    hit_chance = min(80 + (2 * enemy_type * difficulty * (map)), 100)
-    is_on_ground = False
-    image = item_img
-    player_image = spear_character_img
-    position = [0, 0]
+def enemy_weapon_creator(enemy_type, difficulty, level):
+    enemy_weapon_name = "Spear"
+    enemy_weapon_item_type = "WEAPON"
+    enemy_weapon_damage = (enemy_type * difficulty * level) + 6
+    enemy_weapon_defense = 0
+    enemy_weapon_health = 0
+    enemy_weapon_speed = 0
+    enemy_weapon_length = 0
+    enemy_weapon_hit_chance = min(80 + (2 * enemy_type * difficulty * level), 100)
+    enemy_weapon_is_on_ground = False
+    enemy_weapon_image = item_img
+    enemy_weapon_player_image = spear_character_img
+    enemy_weapon_position = [0, 0]
     if enemy_type == 1:
-        magic = None
+        enemy_weapon_magic = None
     elif enemy_type == 2:
         if difficulty == 1:
-            magic = ["DAMAGE", 1]
+            enemy_weapon_magic = ["DAMAGE", 1]
         elif difficulty == 2:
-            magic = ["DAMAGE", 2]
+            enemy_weapon_magic = ["DAMAGE", 2]
         elif difficulty == 3:
-            magic = ["DAMAGE", 3]
+            enemy_weapon_magic = ["DAMAGE", 3]
         else:
-            magic = ["DAMAGE", difficulty * enemy_type]
+            enemy_weapon_magic = ["DAMAGE", difficulty * enemy_type]
     else:
-        magic = None
-    enemy_item = Item(name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position, magic)
+        enemy_weapon_magic = None
+    enemy_item = Item(enemy_weapon_name, enemy_weapon_item_type, enemy_weapon_damage, enemy_weapon_defense,
+                      enemy_weapon_health, enemy_weapon_speed, enemy_weapon_length, enemy_weapon_hit_chance,
+                      enemy_weapon_is_on_ground, enemy_weapon_image, enemy_weapon_player_image, enemy_weapon_position,
+                      enemy_weapon_magic)
     return enemy_item
 
 
-def map_item_creator(map):
+def map_item_creator(level):
     map_1_drop = [19, 38, 57, 76, 95, 96, 97, 100]
     map_2_drop = [12, 12, 12, 12, 12, 14, 14, 12]
     map_3_drop = [10, 10, 10, 10, 10, 20, 20, 10]
-    if map == 1:
+    if level == 1:
         map_drop = map_1_drop
-    elif map == 2:
+    elif level == 2:
         map_drop = map_2_drop
-    elif map == 3:
+    elif level == 3:
         map_drop = map_3_drop
     else:
         map_drop = map_1_drop
 
-    rand_int = random.randint(1, 100)
+    rand_int1 = random.randint(1, 100)
+    rand_int2 = random.randint(1, 100)
+    rand_int3 = random.randint(1, 2)
+    rand_int = rand_int1 if rand_int3 == 1 else rand_int2
     if rand_int <= map_drop[0]:  # Spear -------------------------------------------------------------------------------
-        name = "Spear"
-        item_type = "WEAPON"
-        damage = 5 + 5*map
-        defense = 0
-        health = 0
-        speed = 0
-        length = 0
-        hit_chance = min(100, 90+(2*map))
-        is_on_ground = False
-        image = item_img
-        player_image = spear_character_img
-        magic = ["DAMAGE", map*5]
+        item_name = "Spear"
+        item_item_type = "WEAPON"
+        item_damage = 8*level
+        item_defense = 0
+        item_health = 0
+        item_speed = 0
+        item_length = 0
+        item_hit_chance = min(100, 90+(2*level))
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = spear_character_img
+        item_magic = ["DAMAGE", level*5]
 
     elif map_drop[0] < rand_int <= map_drop[1]:  # Shield---------------------------------------------------------------
-        name = "Shield"
-        item_type = "SHIELD"
-        damage = 0
-        defense = 2*map
-        health = 0
-        speed = 0
-        length = 0
-        hit_chance = 0
-        is_on_ground = False
-        image = item_img
-        player_image = None
-        magic = ["DEFENSE", map * 2]
+        item_name = "Shield"
+        item_item_type = "SHIELD"
+        item_damage = 0
+        item_defense = 2*level
+        item_health = 0
+        item_speed = 0
+        item_length = 0
+        item_hit_chance = 0
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = None
+        item_magic = ["DEFENSE", level * 2]
+
     elif map_drop[1] < rand_int <= map_drop[2]:  # Helmet---------------------------------------------------------------
-        name = "Helment"
-        item_type = "HELMET"
-        damage = 0
-        defense = map
-        health = 0
-        speed = 0
-        length = 0
-        hit_chance = 0
-        is_on_ground = False
-        image = item_img
-        player_image = None
-        magic = None
+        item_name = "Helmet"
+        item_item_type = "HELMET"
+        item_damage = 0
+        item_defense = level
+        item_health = 0
+        item_speed = 0
+        item_length = 0
+        item_hit_chance = 0
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = None
+        item_magic = None
+
     elif map_drop[2] < rand_int <= map_drop[3]:  # Armor----------------------------------------------------------------
-        name = "Armor"
-        item_type = "ARMOR"
-        damage = 0
-        defense = 3*map
-        health = 0
-        speed = 0
-        length = 0
-        hit_chance = 0
-        is_on_ground = False
-        image = item_img
-        player_image = None
-        magic = None
+        item_name = "Armor"
+        item_item_type = "ARMOR"
+        item_damage = 0
+        item_defense = 3*level
+        item_health = 0
+        item_speed = 0
+        item_length = 0
+        item_hit_chance = 0
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = None
+        item_magic = None
+
     elif map_drop[3] < rand_int <= map_drop[4]:  # Boots----------------------------------------------------------------
-        name = "Boots"
-        item_type = "BOOTS"
-        damage = 0
-        defense = map
-        health = 0
-        speed = map
-        length = 0
-        hit_chance = 0
-        is_on_ground = False
-        image = item_img
-        player_image = None
-        magic = None
+        item_name = "Boots"
+        item_item_type = "BOOTS"
+        item_damage = 0
+        item_defense = level
+        item_health = 0
+        item_speed = level
+        item_length = 0
+        item_hit_chance = 0
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = None
+        item_magic = None
+
     elif map_drop[4] < rand_int <= map_drop[5]:  # Potions--------------------------------------------------------------
-        name = "Potion"
-        item_type = "NECKLACE"
-        damage = 0
-        defense = 0
-        health = 0
-        speed = 0
-        length = 10 * map
-        hit_chance = 0
-        is_on_ground = False
-        image = item_img
-        player_image = None
-        magic = ["HEALTH", 2*map]
+        rand_choice = random.randint(1, 4)
+        item_name = "Potion"
+
+        if rand_choice == 1:  # Damage potion
+            item_item_type = "DAMAGE_POTION"
+            item_damage = 5*level
+            item_defense = 0
+            item_health = 0
+            item_speed = 0
+
+        elif rand_choice == 2:  # Defense potion
+            item_item_type = "DEFENSE_POTION"
+            item_damage = 0
+            item_defense = 5*level
+            item_health = 0
+            item_speed = 0
+
+        elif rand_choice == 3:  # Healing potion
+            item_item_type = "HEALING_POTION"
+            item_damage = 0
+            item_defense = 0
+            item_health = 5*level
+            item_speed = 0
+
+        else:  # Speed potion
+            item_item_type = "SPEED_POTION"
+            item_damage = 0
+            item_defense = 0
+            item_health = 0
+            item_speed = map
+
+        item_length = 10 * level
+        item_hit_chance = 0
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = None
+        item_magic = 0
+
     elif map_drop[5] < rand_int <= map_drop[6]:  # Trinkets-------------------------------------------------------------
-        name = "Trinket"
-        item_type = "TRINKET"
-        damage = 0
-        defense = 0
-        health = 0
-        speed = 0
-        length = 0
-        hit_chance = 0
-        is_on_ground = False
-        image = item_img
-        player_image = None
-        magic = ["DAMAGE", 2 * map]
+        item_name = "Trinket"
+        item_item_type = "TRINKET"
+        item_damage = 0
+        item_defense = 0
+        item_health = 0
+        item_speed = 0
+        item_length = 0
+        item_hit_chance = 0
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = None
+        item_magic = ["DAMAGE", 2 * level]
+
     elif map_drop[6] < rand_int <= map_drop[7]:  # Necklace-------------------------------------------------------------
-        name = "Necklace"
-        item_type = "NECKLACE"
-        damage = 0
-        defense = 0
-        health = 0
-        speed = 0
-        length = 0
-        hit_chance = 0
-        is_on_ground = False
-        image = item_img
-        player_image = None
-        magic = ["HEALTH", 2*map]
+        item_name = "Necklace"
+        item_item_type = "NECKLACE"
+        item_damage = 0
+        item_defense = 0
+        item_health = 0
+        item_speed = 0
+        item_length = 0
+        item_hit_chance = 0
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = None
+        item_magic = ["HEALTH", 2*level]
+
     else:
+        item_name = "Necklace"
+        item_item_type = "NECKLACE"
+        item_damage = 0
+        item_defense = 0
+        item_health = 0
+        item_speed = 0
+        item_length = 0
+        item_hit_chance = 0
+        item_is_on_ground = True
+        item_image = item_img
+        item_player_image = None
+        item_magic = ["HEALTH", 2 * level]
         print("Problem with drop chances")
 
-    position = [0, 0]
-    item = Item(name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position, magic)
-    return item
+    item_position = [0, 0]
+    item_to_return = Item(item_name, item_item_type, item_damage, item_defense, item_health, item_speed, item_length,
+                          item_hit_chance, item_is_on_ground, item_image, item_player_image, item_position, item_magic)
+    return item_to_return
 
 
-def load_new_map(path, items):
+def load_new_map(path):
     f = open(path + '1.txt', 'r')
     data = f.read()
     f.close()
     data = data.split('\n')
-    i = 0
-    enemies1 = []
-    enemies2 = []
+
+    items_set = []
+    enemies_set_1 = []
+    enemies_set_2 = []
+
+    c = 0
     item_count = 0
     enemy1_count = 0
     enemy2_count = 0
+
     f = open(path + '.txt', 'w')
     f.seek(0, 0)
     for row in data:
-        j = 0
+        r = 0
         for k in row:
             if str(k) == str(2):
-                items[item_count].set_position([j, i])
-                print(items[item_count].get_name() + "----------------")
-                print(items[item_count].get_position())
-                x = split(row)
-                x[j] = "0"
-                row = x
+                new_item = map_item_creator(1)
+                new_item.set_position([r, c])
+                items_set.append(new_item)
+                block = split(row)
+                block[r] = "0"
+                row = block
                 row = ''.join(row)
                 item_count += 1
+
             if str(k) == str(3):
-                #enemy2 = Enemy("Enemy2", enemy2_img, "Goblin1", 10, -1, 1.5, -2, 1, 1, False, [20, 5], item1, 0, 10)
-                vals = enemy_values(2, 1)
-                enemy2 = Enemy(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9],
-                               vals[10], vals[11], vals[12], vals[13])
-                enemy2.set_position([j, i])
-                enemies2.append(enemy2)
-                x = split(row)
-                x[j] = "0"
-                row = x
+                values = enemy_values(2, 1)
+                enemy2 = Enemy(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7],
+                               values[8], values[9], values[10], values[11], values[12], values[13])
+                enemy2.set_position([r, c])
+                enemies_set_2.append(enemy2)
+                block = split(row)
+                block[r] = "0"
+                row = block
                 row = ''.join(row)
                 enemy2_count += 1
 
             if str(k) == str(4):
-                vals = enemy_values(1, 2)
-                enemy1 = Enemy(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9], vals[10], vals[11], vals[12], vals[13])
-                # enemy1 = Enemy("Enemy1", enemy1_img, "Chad", 10, 0, 1, -1, 1, 1, False, [0, 0], item1, 0, 20)
-                enemy1.set_position([j, i])
-                enemies1.append(enemy1)
-                x = split(row)
-                x[j] = "0"
-                row = x
+                values = enemy_values(1, 2)
+                enemy1 = Enemy(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7],
+                               values[8], values[9], values[10], values[11], values[12], values[13])
+                enemy1.set_position([r, c])
+                enemies_set_1.append(enemy1)
+                block = split(row)
+                block[r] = "0"
+                row = block
                 row = ''.join(row)
                 enemy1_count += 1
 
             else:
                 pass
-            j += 1
+            r += 1
         f.write(str(row) + '\n')
-        i += 1
+        c += 1
     f.close()
-    return items, enemies1, enemies2
+    return items_set, enemies_set_1, enemies_set_2
 
-# name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position, magic):
-items = []
-item2 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)  # [10, 6]
-item3 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
-item4 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
-item5 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
-#item3 = Item("Leather Armor", "ARMOR", 0, 5, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 3]"Boots", "BOOTS", 0, 1, 0, True, item_img, None, [0, 0], None
-#item3 = Item("Attack Necklace", "NECKLACE", 0, 0, 0, 0, 0, 0, True, item_img, None, [0, 0], ["DAMAGE", 2])
-#item3 = Item("Hth_Potion", "HEALING_POTION", 0, 0, 0, 0, 10, 0, True, item_img, None, [0, 0], ["HEALTH", 5])
-#item3 = Item("Spd_Potion", "SPEED_POTION", 0, 0, 0, 0, 20, 0, True, item_img, None, [0, 0], ["SPEED", 1])
-#item4 = Item("Shield", "SHIELD", 0, 3, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
-#item5 = Item("Boots", "BOOTS", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
-item6 = Item("Helmet", "HELMET", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
-item7 = Item("Boots", "BOOTS", 0, 2, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
-
-item1 = Item("Spear", "WEAPON", 5, 0, 0, 0, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 0])
+# name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position,
+# magic):
 
 
-items.append(item2)
-items.append(item3)
-items.append(item4)
-items.append(item5)
-items.append(item6)
-items.append(item7)
+# items = []
+# item2 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)  # [10, 6]
+# item3 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
+# item4 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
+# item5 = Item("Spear", "WEAPON", 1, 0, 0, 0, 0, 90, True, item_img, spear_character_img, [0, 0], None)
+# item3 = Item("Leather Armor", "ARMOR", 0, 5, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 3]"Boots", "BOOTS",
+# 0, 1, 0, True, item_img, None, [0, 0], None
+# item3 = Item("Attack Necklace", "NECKLACE", 0, 0, 0, 0, 0, 0, True, item_img, None, [0, 0], ["DAMAGE", 2])
+# item3 = Item("Hth_Potion", "HEALING_POTION", 0, 0, 0, 0, 10, 0, True, item_img, None, [0, 0], ["HEALTH", 5])
+# item3 = Item("Spd_Potion", "SPEED_POTION", 0, 0, 0, 0, 20, 0, True, item_img, None, [0, 0], ["SPEED", 1])
+# item4 = Item("Shield", "SHIELD", 0, 3, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
+# item5 = Item("Boots", "BOOTS", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
+# item6 = Item("Helmet", "HELMET", 0, 1, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [15, 6]
+# item7 = Item("Boots", "BOOTS", 0, 2, 0, 0, 0, 0, True, item_img, None, [0, 0], None)  # [20, 6]
+
+# item1 = Item("Spear", "WEAPON", 5, 0, 0, 0, 0, 90, False, item_img, spear_character_img, [0, 0], ["DAMAGE", 0])
+
+#
+# items.append(item2)
+# items.append(item3)
+# items.append(item4)
+# items.append(item5)
+# items.append(item6)
+# items.append(item7)
 
 players = []
 player1 = Player("Player", player_img, "Andrew", 12, 0, -1, 0, -1, 1, False, [6, 6], None, 201, 20)
 player2 = Player("Player", player_img, "Yeet",   100, 0,  1, 0,  1, 2, False, [1, 3], None, 201, 20)
-#players.append(player1)
 players.append(player2)
-enemy_weapons = [item1]
-items, enemies1, enemies2 = load_new_map('map', items)
 
-print("Testing enemies 1 postions")
-for i in enemies1:
-    print(i.get_position())
+items, enemies1, enemies2 = load_new_map('map')
+objects = [player2]
+characters = [player2]
 
-objects = [player2]  # player1, enemy2,
-characters = [player2]  # enemy1, enemy2
 enemies = []
 for i in items:
-    print(i.get_position())
     objects.append(i)
 for i in enemies1:
-    print(i.get_position())
     objects.append(i)
     characters.append(i)
     enemies.append(i)
 for i in enemies2:
-    print(i.get_position())
     objects.append(i)
     characters.append(i)
     enemies.append(i)
 
 true_scroll = [0, 0]
-
 speed = 2
 drop_proc = 10
 
@@ -412,7 +466,7 @@ def check_open_square(coordinates):
 def find_objects_around(coordinates):
     # Checks the full 8 squares around the player
     list_of_objects = []
-    list_of_coords =[]
+    list_of_coords = []
     list_of_coords.append([coordinates[0], coordinates[1]+1])
     list_of_coords.append([coordinates[0]+1, coordinates[1] + 1])
     list_of_coords.append([coordinates[0]+1, coordinates[1]])
@@ -421,10 +475,10 @@ def find_objects_around(coordinates):
     list_of_coords.append([coordinates[0]-1, coordinates[1] - 1])
     list_of_coords.append([coordinates[0]-1, coordinates[1]])
     list_of_coords.append([coordinates[0]-1, coordinates[1] + 1])
-    for object in objects:
+    for object_around in objects:
         for coord in list_of_coords:
-            if object.get_position() == [coord[0], coord[1]]:
-                list_of_objects.append(object)
+            if object_around.get_position() == [coord[0], coord[1]]:
+                list_of_objects.append(object_around)
             else:
                 pass
     return list_of_objects
@@ -842,7 +896,6 @@ def if_action_equip(object):
 
 def get_player_decision(player):
     # Compare and equip weapons/shields code:
-
     a = True if player.get_equipped_weapon() is not None else False
     if a:
         b = len(player.get_weapons()) > 1
@@ -965,7 +1018,6 @@ counter_two = 0
 turn_count = 0
 while True:
     display.fill((146, 244, 255))
-
     # BOT PROCESS CODE
     # END BOT PROCESS CODE
 
@@ -993,10 +1045,12 @@ while True:
         y += 1
 
     if counter % FPS == 0:  # Main Desicion Code here
+        print("-----------------------NEW LOOP-----------------------------")
         for character in characters:
             # print("updating")
             character.update_self()
         for character in characters:  # For loop after this can double action
+            move_only = False
             # Testing speed
             if isinstance(character, Player):
                 get_player_decision(character)
@@ -1004,16 +1058,27 @@ while True:
             if isinstance(character, Enemy):
                 get_enemy_decision(character)
 
+            # This is just printing player decision for now otherwise it gets cluttered
+            object_position = character.get_position()
+            type_of_action, value = character.get_action()
+            # print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_current_health()))
+            if isinstance(character, Player):
+                print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(
+                    type_of_action) + " : " + str(object_position) + " : " + str(character.get_current_health()))
+                print("PLAYER SPEED: " + str(character.get_speed()))
+
             turn_range = 1
             if character.get_action()[0] == "MOVE" and character.get_speed() > 1:
+                move_only = True
                 path_2 = bfs(game_map_clean, character.get_position(), character.get_action()[1])
                 turn_range = len(path_2)
                 if turn_range >= character.get_speed():
                     turn_range = character.get_speed()
                 else:
                     turn_range = turn_range
+            else:
+                move_only = False
 
-            #print('Turn range: ' + str(turn_range))
             for i in range(turn_range):
                 if isinstance(character, Player):
                     get_player_decision(character)
@@ -1023,18 +1088,19 @@ while True:
 
                 object_position = character.get_position()
                 type_of_action, value = character.get_action()
-                print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_current_health()))
-                #print(character.get_name() + " defense is " + str(character.get_defense()))
-                if type_of_action == "ATTACK":
+
+                if type_of_action == "ATTACK" and not move_only:
                     if_action_attack(character)
-                if type_of_action == "MOVE":
+                elif type_of_action == "MOVE":
                     if_action_move(game_map, character)
-                if type_of_action == "PICKUP":
+                elif type_of_action == "PICKUP" and not move_only:
                     if_action_pickup(character)
-                if type_of_action == "EQUIP":
+                elif type_of_action == "EQUIP" and not move_only:
                     if_action_equip(character)
-                if type_of_action == "ACTIVATE":
+                elif type_of_action == "ACTIVATE" and not move_only:
                     if_action_activate(character)
+                else:
+                    pass
 
                 game_map = load_map('map')
                 if isinstance(character, Player):
@@ -1063,11 +1129,13 @@ while True:
                         new_x, new_y = item.get_position()
                         game_map[new_y][new_x] = 4
                     else:
-                        try:
-                            items.remove(item)
-                            objects.remove(item)
-                        except:
-                            pass
+                        items.remove(item)
+                        objects.remove(item)
+                        # try:
+                        #     items.remove(item)
+                        #     objects.remove(item)
+                        # except Exception as e:
+                        #     print(exception(e))
 
                 for all_objects in objects:
                     display.blit(all_objects.get_image(),

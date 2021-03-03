@@ -161,7 +161,6 @@ class Character:
                           self.active_potion]
         for item in self.all_items:
             if item is not None:
-                print(str(item.get_name()))
                 damage += item.get_damage()
             else:
                 pass
