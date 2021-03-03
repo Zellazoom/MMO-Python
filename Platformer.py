@@ -3,7 +3,7 @@ import sys
 import os
 from player import Player
 from enemy import Enemy
-from item import Item
+from item_box import Item
 from graphics import Graphics
 from pygame.locals import *
 import collections
@@ -482,21 +482,21 @@ def move(rect, movement, tiles):
     movement[0], movement[1] = get_pixels_from_chunks(movement[0]), get_pixels_from_chunks(movement[1])
     rect.x += movement[0]
     hit_list = collision_test(rect, tiles)
-    for tile in hit_list:
+    for tile_block in hit_list:
         if movement[0] > 0:
-            rect.right = tile.left
+            rect.right = tile_block.left
             collision_types['right'] = True
         elif movement[0] < 0:
-            rect.left = tile.right
+            rect.left = tile_block.right
             collision_types['left'] = True
     rect.y += movement[1]
     hit_list = collision_test(rect, tiles)
-    for tile in hit_list:
+    for tile_block in hit_list:
         if movement[1] > 0:
-            rect.bottom = tile.top
+            rect.bottom = tile_block.top
             collision_types['bottom'] = True
         elif movement[1] < 0:
-            rect.top = tile.bottom
+            rect.top = tile_block.bottom
             collision_types['top'] = True
     return rect, collision_types
 
@@ -506,14 +506,14 @@ def find_enemy_in_area(person):
     list_of_objects = find_objects_around(person.get_position())
     if isinstance(person, Player):
         # enemy is enemy
-        for object in list_of_objects:
-            if isinstance(object, Enemy):
-                return object
+        for object_in_game in list_of_objects:
+            if isinstance(object_in_game, Enemy):
+                return object_in_game
     if isinstance(person, Enemy):
         # enemy is player
-        for object in list_of_objects:
-            if isinstance(object, Player):
-                return object
+        for object_in_game in list_of_objects:
+            if isinstance(object_in_game, Player):
+                return object_in_game
     else:
         return None
 
@@ -523,19 +523,20 @@ def find_enemy_in_area(person):
 def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
     grid = [list(map(str, row)) for row in grid]
     width, height = len(grid[0]), len(grid)
-    wall, clear, player, enemy, item = '1', '0', '2', '3', '4'
+    wall, clear, player, enemy, item_tile = '1', '0', '2', '3', '4'  # These numbers do not specify what enemy
     start = (start_1[0], start_1[1])
     queue = collections.deque([[start]])
     seen = {start}
     while queue:
         path = queue.popleft()
-        x, y = path[-1]
-        if grid[y][x] != "1" and y == end[1] and x == end[0]:
+        x_val, y_val = path[-1]
+        if grid[y_val][x_val] != "1" and y_val == end[1] and x_val == end[0]:
             return path
 
         if grid[end[1]][end[0]] == "0":
-            for x2, y2 in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and grid[y2][x2] != enemy and grid[y2][x2] != item and (x2, y2) not in seen:
+            for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
+                if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                        grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
                     queue.append(path + [(x2, y2)])
                     seen.add((x2, y2))
 
@@ -543,35 +544,41 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
             return -1
 
         if grid[end[1]][end[0]] == "2":
-            for x2, y2 in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
                 if grid[y2][x2] == grid[end[1]][end[0]]:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != enemy and grid[y2][x2] != item and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != enemy and \
+                            grid[y2][x2] != item_tile and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
                 else:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and grid[y2][x2] != enemy and grid[y2][x2] != item and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                            grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
 
         if grid[end[1]][end[0]] == "3":
-            for x2, y2 in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
                 if grid[y2][x2] == grid[end[1]][end[0]]:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and grid[y2][x2] != item and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                            grid[y2][x2] != item_tile and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
                 else:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and grid[y2][x2] != enemy and grid[y2][x2] != item and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                            grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
 
         if grid[end[1]][end[0]] == "4":
-            for x2, y2 in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
                 if grid[y2][x2] == grid[end[1]][end[0]]:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and grid[y2][x2] != enemy and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                            grid[y2][x2] != enemy and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
                 else:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and grid[y2][x2] != enemy and grid[y2][x2] != item and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                            grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
 
@@ -579,125 +586,125 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
     return -1
 
 
-def find_enemies_by_range(object):
+def find_enemies_by_range(object_in_game):
     list_of_all_enemies = []
-    if isinstance(object, Player):
+    if isinstance(object_in_game, Player):
         for enemy in enemies:
-            path_1 = bfs(game_map_clean, object.get_position(), enemy.get_position())
+            path_1 = bfs(game_map_clean, object_in_game.get_position(), enemy.get_position())
             list_of_all_enemies.append([enemy, len(path_1) - 1])
 
-    if isinstance(object, Enemy):
+    if isinstance(object_in_game, Enemy):
         for player in players:
-            path_1 = bfs(game_map_clean, object.get_position(), player.get_position())
+            path_1 = bfs(game_map_clean, object_in_game.get_position(), player.get_position())
             list_of_all_enemies.append([player, len(path_1) - 1])
 
-    sorted_list = sorted(list_of_all_enemies, key=lambda x: x[1])
+    sorted_list = sorted(list_of_all_enemies, key=lambda x_element: x_element[1])
 
     newly_sorted_list = []
-    for list in sorted_list:
-        newly_sorted_list.append(list[0])
+    for lists in sorted_list:
+        newly_sorted_list.append(lists[0])
 
     return newly_sorted_list
 
 
-def find_enemies_in_range(object, length):
+def find_enemies_in_range(object_in_game, length):
     list_of_all_enemies = []
-    if isinstance(object, Player):
+    if isinstance(object_in_game, Player):
         for enemy in enemies:
-            path_1 = bfs(game_map_clean, object.get_position(), enemy.get_position())
+            path_1 = bfs(game_map_clean, object_in_game.get_position(), enemy.get_position())
             if len(path_1) <= length:
-                #print("Enemy " + object.get_name() + " is " + str(len(path_1)) + "blocks away")
+                # print("Enemy " + object.get_name() + " is " + str(len(path_1)) + "blocks away")
                 list_of_all_enemies.append([enemy, len(path_1) - 1])
             else:
                 pass
 
-    if isinstance(object, Enemy):
+    if isinstance(object_in_game, Enemy):
         for player in players:
-            path_1 = bfs(game_map_clean, object.get_position(), player.get_position())
-            #list_of_all_enemies.append([player, len(path_1) - 1])
-            #print("Player " + object.get_name() + " is " + str(len(path_1)) + "blocks away")
+            path_1 = bfs(game_map_clean, object_in_game.get_position(), player.get_position())
+            # list_of_all_enemies.append([player, len(path_1) - 1])
+            # print("Player " + object.get_name() + " is " + str(len(path_1)) + "blocks away")
             if len(path_1) <= length:
                 list_of_all_enemies.append([player, len(path_1) - 1])
             else:
                 pass
 
-    sorted_list = sorted(list_of_all_enemies, key=lambda x: x[1])
+    sorted_list = sorted(list_of_all_enemies, key=lambda x_val: x_val[1])
 
     newly_sorted_list = []
-    for list in sorted_list:
-        newly_sorted_list.append(list[0])
+    for lists in sorted_list:
+        newly_sorted_list.append(lists[0])
 
     return newly_sorted_list
 
 
-def shortest_dist_to_enemy(object):
+def shortest_dist_to_enemy(object_in_game):
     list_of_all_enemies = []
-    if isinstance(object, Player):
+    if isinstance(object_in_game, Player):
         for enemy in enemies:
-            path_1 = bfs(game_map_clean, object.get_position(), enemy.get_position())
+            path_1 = bfs(game_map_clean, object_in_game.get_position(), enemy.get_position())
             list_of_all_enemies.append([enemy, len(path_1) - 1])
 
-    if isinstance(object, Enemy):
+    if isinstance(object_in_game, Enemy):
         for player in players:
-            path_1 = bfs(game_map_clean, object.get_position(), player.get_position())
+            path_1 = bfs(game_map_clean, object_in_game.get_position(), player.get_position())
             list_of_all_enemies.append([player, len(path_1) - 1])
 
-    sorted_list = sorted(list_of_all_enemies, key=lambda x: x[1])
+    sorted_list = sorted(list_of_all_enemies, key=lambda x_val: x_val[1])
     if len(sorted_list) != 0:
         newly_sorted_list = []
-        for list in sorted_list:
-            newly_sorted_list.append(list[1])
+        for lists in sorted_list:
+            newly_sorted_list.append(lists[1])
         length_away = newly_sorted_list[0] - 1
     else:
         length_away = float('inf')
     return length_away
 
 
-def shortest_dist_to_item(object):
+def shortest_dist_to_item(object_in_game):
     list_of_all_items = []
-    for item in items:
-        path_1 = bfs(game_map_clean, object.get_position(), item.get_position())
-        list_of_all_items.append([item, len(path_1)-1])
+    for item_tile in items:
+        path_1 = bfs(game_map_clean, object_in_game.get_position(), item_tile.get_position())
+        list_of_all_items.append([item_tile, len(path_1) - 1])
 
-    sorted_list = sorted(list_of_all_items, key=lambda x: x[1])
+    sorted_list = sorted(list_of_all_items, key=lambda x_val: x_val[1])
     if len(sorted_list) != 0:
         newly_sorted_list = []
-        for list in sorted_list:
-            newly_sorted_list.append(list[1])
+        for lists in sorted_list:
+            newly_sorted_list.append(lists[1])
         length_away = newly_sorted_list[0] - 1
     else:
         length_away = float('inf')
     return length_away
 
 
-def find_items_by_range(object):
+def find_items_by_range(object_in_game):
     list_of_all_items = []
-    for item in items:
-        path_1 = bfs(game_map_clean, object.get_position(), item.get_position())
-        list_of_all_items.append([item, len(path_1)-1])
+    for item_tile in items:
+        path_1 = bfs(game_map_clean, object_in_game.get_position(), item_tile.get_position())
+        list_of_all_items.append([item_tile, len(path_1) - 1])
 
-    sorted_list = sorted(list_of_all_items, key=lambda x: x[1])
+    sorted_list = sorted(list_of_all_items, key=lambda x_val: x_val[1])
 
     newly_sorted_list = []
-    for list in sorted_list:
-        newly_sorted_list.append(list[0])
+    for lists in sorted_list:
+        newly_sorted_list.append(lists[0])
 
     return newly_sorted_list
 
 
-def find_items_in_range(object, length):
+def find_items_in_range(object_in_game, length):
     list_of_all_items = []
-    for item in items:
-        path_1 = bfs(game_map_clean, object.get_position(), item.get_position())
+    for item_tile in items:
+        path_1 = bfs(game_map_clean, object_in_game.get_position(), item_tile.get_position())
         if len(path_1) - 1 <= length:
-            list_of_all_items.append([item, len(path_1) - 1])
+            list_of_all_items.append([item_tile, len(path_1) - 1])
         else:
             pass
-    sorted_list = sorted(list_of_all_items, key=lambda x: x[1])
+    sorted_list = sorted(list_of_all_items, key=lambda x_val: x_val[1])
 
     newly_sorted_list = []
-    for list in sorted_list:
-        newly_sorted_list.append(list[0])
+    for lists in sorted_list:
+        newly_sorted_list.append(lists[0])
 
     return newly_sorted_list
 
@@ -705,9 +712,9 @@ def find_items_in_range(object, length):
 def find_item_in_area(person):
     # returns an enemy of the opposite side
     list_of_objects = find_objects_around(person.get_position())
-    for object in list_of_objects:
-        if isinstance(object, Item):
-            return object
+    for object_in_game in list_of_objects:
+        if isinstance(object_in_game, Item):
+            return object_in_game
         else:
             pass
     else:
@@ -725,34 +732,34 @@ def get_list_of_movement(player_pos, path_coords):
 
 
 # END CODE FOR PLAYER TO CALL
-def if_action_move(game_map_temp, object):
-    current_position = object.get_position()
-    value_of_action = object.get_action()[1]
-    object_rect = object.get_rect()
+def if_action_move(game_map_temp, object_in_game):
+    current_position = object_in_game.get_position()
+    value_of_action = object_in_game.get_action()[1]
+    object_rect = object_in_game.get_rect()
     if current_position != value_of_action:
         list_of_positions = bfs(game_map_temp, current_position, value_of_action)
         if list_of_positions != -1:
-            list_of_movement = get_list_of_movement(current_position, list_of_positions)
-            if len(list_of_movement) != 0:
-                new_coords = [current_position[0] + list_of_movement[0][0], current_position[1] + list_of_movement[0][1]]
+            list_of_moving = get_list_of_movement(current_position, list_of_positions)
+            if len(list_of_moving) != 0:
+                new_coords = [current_position[0] + list_of_moving[0][0], current_position[1] + list_of_moving[0][1]]
                 if check_open_square(new_coords):
-                    object_new_pos = list_of_movement[0]
-                    object.set_position(new_coords)
-                    object_rect, collisions = move(object_rect, object_new_pos, tile_rects)
+                    object_new_pos = list_of_moving[0]
+                    object_in_game.set_position(new_coords)
+                    object_rect, collisions = move(object_rect, object_new_pos, tile_rectangles)
 
-                    object.set_rect(object_rect)
-                    list_of_movement.remove(list_of_movement[0])
+                    object_in_game.set_rect(object_rect)
+                    list_of_moving.remove(list_of_moving[0])
                 else:
-                    object.set_action("STAY", object.get_position())
+                    object_in_game.set_action("STAY", object_in_game.get_position())
 
             else:
-                object.set_action("STAY", object.get_position())
+                object_in_game.set_action("STAY", object_in_game.get_position())
 
         else:
             print("Bot didn't Move. Invalid location")
 
     else:
-        object.set_action("STAY", object.get_position())
+        object_in_game.set_action("STAY", object_in_game.get_position())
 
 
 def attack(attacker, attacked):
@@ -764,11 +771,11 @@ def attack(attacker, attacked):
     # If the attack hits set the damage, otherwise it stays at 0
     if random.randint(1, 100) <= hit_percentage:
         damage = max(0, attacker.get_damage() + attacker.get_attack_bonus() - attacked.get_defense())
-        #print(attacked.get_defense())
+        # print(attacked.get_defense())
         # Checks for critical strike
         if random.randint(1, 10) <= (attacker.get_accuracy() - attacked.get_agility()):
             damage = damage * 1.5
-            print(attacker.get_name() + " critically struck " + attacked.get_name() + " for " + str(damage) + " damage!")
+            print(attacker.get_name() + " critically struck " + attacked.get_name() + " for " + str(damage) + " damage")
         else:
             print(attacker.get_name() + " hit " + attacked.get_name() + " for " + str(damage) + " damage.")
     else:
@@ -777,68 +784,67 @@ def attack(attacker, attacked):
     print(attacked.get_name() + " has " + str(attacked.get_current_health()) + " health left.")
 
 
-def if_action_attack(object):
-    action, attacked = object.get_action()
-    attack(object, attacked)
-    initial_rank = object.get_rank()
+def if_action_attack(object_in_game):
+    action, attacked = object_in_game.get_action()
+    attack(object_in_game, attacked)
 
     if attacked.is_dead:
         if isinstance(attacked, Player):
-            object.add_xp(attacked.get_death_xp())
+            object_in_game.add_xp(attacked.get_death_xp())
 
             try:
                 print(attacked.get_name() + " IS DEAD+++++++++++++++")
                 # Drop Equipped Item
                 try:
-                    drop_rand = random.randint(1, 10)
-                    if drop_rand < drop_proc:
+                    random_drop_roll = random.randint(1, 10)
+                    if random_drop_roll < drop_proc:
                         if attacked.get_equipped_weapon() is not None:
-                            dropped_item = copy(attacked.get_equipped_weapon())
-                            attacked.drop_item(dropped_item)
-                            dropped_item.set_position(attacked.get_position())
-                            dropped_item.set_on_ground(True)
+                            item_from_drop = copy(attacked.get_equipped_weapon())
+                            attacked.drop_item(item_from_drop)
+                            item_from_drop.set_position(attacked.get_position())
+                            item_from_drop.set_on_ground(True)
 
-                            items.append(dropped_item)
-                            objects.append(dropped_item)
+                            items.append(item_from_drop)
+                            objects.append(item_from_drop)
                     else:
                         pass
-                except:
-                    print("Something happened")
+                finally:
+                    print("Attack did not go well... Check code")
 
                 players.remove(attacked)
                 characters.remove(attacked)
                 objects.remove(attacked)
-            except:
+            finally:
                 pass
 
 
         if isinstance(attacked, Enemy):
-            print("Player's xp before kill: " + str(object.get_xp()) + ": " + str(object.get_rank()))
-            object.add_xp(attacked.get_death_xp())
-            print("Player's xp after kill: " + str(object.get_xp()) + ": " + str(object.get_rank()))
+            print("Player's xp before kill: " + str(object_in_game.get_xp()) + ": " + str(object_in_game.get_rank()))
+            object_in_game.add_xp(attacked.get_death_xp())
+            print("Player's xp after kill: " + str(object_in_game.get_xp()) + ": " + str(object_in_game.get_rank()))
             try:
                 # Drop Equipped Item
                 try:
-                    drop_rand = random.randint(1, 10)
-                    if drop_rand < drop_proc:
+                    random_drop_roll = random.randint(1, 10)
+                    if random_drop_roll < drop_proc:
                         if attacked.get_equipped_weapon() is not None:
-                            dropped_item = copy(attacked.get_equipped_weapon())
-                            attacked.drop_item(dropped_item)
-                            dropped_item.set_position(attacked.get_position())
-                            dropped_item.set_on_ground(True)
+                            item_from_drop = copy(attacked.get_equipped_weapon())
+                            attacked.drop_item(item_from_drop)
+                            item_from_drop.set_position(attacked.get_position())
+                            item_from_drop.set_on_ground(True)
 
-                            items.append(dropped_item)
-                            objects.append(dropped_item)
+                            items.append(item_from_drop)
+                            objects.append(item_from_drop)
                     else:
                         pass
-                except:
+                finally:
                     pass
 
                 print(attacked.get_name() + " IS DEAD+++++++++++++++")
                 enemies.remove(attacked)
                 characters.remove(attacked)
                 objects.remove(attacked)
-            except:
+            finally:
                 pass
         else:
             pass
@@ -854,27 +860,27 @@ def pickup(person, pickup_item):
         items.remove(pickup_item)
         objects.remove(pickup_item)
         person.set_has_new_weapon(True)
-    except:
-        print("Item is already removed Welp")
+    finally:
+        print("Item is already removed.")
 
 
-def if_action_pickup(object):
-    action, item = object.get_action()
-    pickup(object, item)
+def if_action_pickup(object_in_game):
+    action, item = object_in_game.get_action()
+    pickup(object_in_game, item)
 
 
 def activate(person, activate_item):
     person.set_active_potion(activate_item)
 
 
-def if_action_activate(object):
-    action, item = object.get_action()
-    activate(object, item)
+def if_action_activate(object_in_game):
+    action, item = object_in_game.get_action()
+    activate(object_in_game, item)
 
 
-def rotate_list(list, num):
-    list = list[num:] + list[:num]
-    return list
+def rotate_list(given_list, num):
+    given_list = given_list[num:] + given_list[:num]
+    return given_list
 
 
 def equip(person, equipping_item):
@@ -882,9 +888,9 @@ def equip(person, equipping_item):
     person.set_has_new_weapon(False)
 
 
-def if_action_equip(object):
-    action, item = object.get_action()
-    equip(object, item)
+def if_action_equip(object_in_game):
+    action, item = object_in_game.get_action()
+    equip(object_in_game, item)
 
 
 def get_player_decision(player):
@@ -899,7 +905,7 @@ def get_player_decision(player):
     else:
         var = False
 
-    #try:
+    # try:
     # Checking immediate area: 1 block in any direction
     if find_enemy_in_area(player) is not None:
         enemy_to_attack = find_enemy_in_area(player)
@@ -926,17 +932,17 @@ def get_player_decision(player):
         item_to_equip = player.get_necklaces()[0]
         player.set_action("EQUIP", item_to_equip)
 
-    elif player.get_equipped_trinket() is None and len(player.get_all_trinkets()) != 0: # Change this bot code for trinkets it sucks
+    elif player.get_equipped_trinket() is None and len(player.get_all_trinkets()) != 0:
         item_to_equip = player.get_all_trinkets()[0]
         player.set_action("EQUIP", item_to_equip)
 
     # Activating Health Potion
-    elif player.get_active_potion() is None and len(player.get_healing_potions()) != 0 and player.get_health() < 55: # Change this bot code for trinkets it sucks
+    elif player.get_active_potion() is None and len(player.get_healing_potions()) != 0 and player.get_health() < 55:
         item_to_activate = player.get_healing_potions()[0]
         player.set_action("ACTIVATE", item_to_activate)
 
     # Activating Speed Potion
-    elif player.get_active_potion() is None and len(player.get_speed_potions()) != 0:  # Change this bot code for trinkets it sucks
+    elif player.get_active_potion() is None and len(player.get_speed_potions()) != 0:
         item_to_activate = player.get_speed_potions()[0]
         player.set_action("ACTIVATE", item_to_activate)
 
@@ -951,9 +957,9 @@ def get_player_decision(player):
         print("Num to drop = " + str(num_to_drop))
         player.set_action("STAY", player.get_position())
         count = 0
-        for i in reversed(player.get_weapons()):
+        for weapon in reversed(player.get_weapons()):
             if count < num_to_drop:
-                player.drop_item(i)
+                player.drop_item(weapon)
                 count += 1
             else:
                 pass
@@ -961,7 +967,8 @@ def get_player_decision(player):
 
 
     # This checks if enemies are closer than chest in the area
-    elif (str(shortest_dist_to_item(player)) != 'inf' and str(shortest_dist_to_item(player)) != 'inf') and (shortest_dist_to_enemy(player) <= shortest_dist_to_item(player)):
+    elif (str(shortest_dist_to_item(player)) != 'inf' and str(shortest_dist_to_item(player)) != 'inf') and \
+            (shortest_dist_to_enemy(player) <= shortest_dist_to_item(player)):
         target = find_enemies_by_range(player)
         player.set_action("MOVE", target[0].get_position())
 
@@ -1002,8 +1009,9 @@ def get_enemy_decision(enemy):
 
         return enemy.get_action()
 
-    except:
+    finally:
         print("Object is dead")
+
 
 # Set up
 counter = 0
@@ -1023,7 +1031,7 @@ while True:
     scroll[0] = int(scroll[0])
     scroll[1] = int(scroll[1])
 
-    tile_rects = []
+    tile_rectangles = []
     y = 0
     for layer in game_map_clean:
         x = 0
@@ -1033,11 +1041,11 @@ while True:
             if tile == 1:
                 display.blit(dirt_img, (x * 16 - scroll[0], y * 16 - scroll[1]))
             if tile != 0:
-                tile_rects.append(pygame.Rect(x * 16, y * 16, 16, 16))
+                tile_rectangles.append(pygame.Rect(x * 16, y * 16, 16, 16))
             x += 1
         y += 1
 
-    if counter % FPS == 0:  # Main Desicion Code here
+    if counter % FPS == 0:  # Main Decision Code here
         print("-----------------------NEW LOOP-----------------------------")
         for character in characters:
             # print("updating")
@@ -1054,7 +1062,9 @@ while True:
             # This is just printing player decision for now otherwise it gets cluttered
             object_position = character.get_position()
             type_of_action, value = character.get_action()
-            # print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(character.get_rank()) + " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " + str(object_position)+ " : " + str(character.get_current_health()))
+            # print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(character.get_rank()) +
+            # " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " +
+            # str(object_position)+ " : " + str(character.get_current_health()))
             if isinstance(character, Player):
                 print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(
                     type_of_action) + " : " + str(object_position) + " : " + str(character.get_current_health()))
@@ -1102,7 +1112,8 @@ while True:
                         characters.remove(character)
                         objects.remove(character)
                     else:
-                        display.blit(character.get_image(), (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
+                        display.blit(character.get_image(),
+                                     (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
                         new_x, new_y = character.get_position()
                         game_map[new_y][new_x] = 2
 
@@ -1112,18 +1123,20 @@ while True:
                         characters.remove(character)
                         objects.remove(character)
                     else:
-                        display.blit(character.get_image(), (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
+                        display.blit(character.get_image(),
+                                     (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
                         new_x, new_y = character.get_position()
                         game_map[new_y][new_x] = 3
 
-                for item in items:
-                    if item.on_ground():
-                        display.blit(item.get_image(), (item.get_rect().x - scroll[0], item.get_rect().y - scroll[1]))
-                        new_x, new_y = item.get_position()
+                for item_box in items:
+                    if item_box.on_ground():
+                        display.blit(item_box.get_image(),
+                                     (item_box.get_rect().x - scroll[0], item_box.get_rect().y - scroll[1]))
+                        new_x, new_y = item_box.get_position()
                         game_map[new_y][new_x] = 4
                     else:
-                        items.remove(item)
-                        objects.remove(item)
+                        items.remove(item_box)
+                        objects.remove(item_box)
                         # try:
                         #     items.remove(item)
                         #     objects.remove(item)
@@ -1138,7 +1151,8 @@ while True:
 
     # Add item code
     for all_objects in objects:
-        display.blit(all_objects.get_image(), (all_objects.get_rect().x - scroll[0], all_objects.get_rect().y - scroll[1]))
+        display.blit(all_objects.get_image(), (all_objects.get_rect().x - scroll[0],
+                                               all_objects.get_rect().y - scroll[1]))
 
     graphics.animate(counter_two, scroll, players, enemies)
 
