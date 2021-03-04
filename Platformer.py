@@ -298,7 +298,7 @@ def load_new_map(path):
     enemy1_count = 0
     enemy2_count = 0
 
-    f = open(path + '.txt', 'w')
+    f = open(path + '_1.txt', 'w')
     f.seek(0, 0)
     for row in data:
         r = 0
@@ -401,7 +401,7 @@ drop_proc = 10
 
 
 def get_map_dimensions(path):
-    f = open(path + '.txt', 'r')
+    f = open(path + '_1.txt', 'r')
     data = f.read()
     f.close()
     data = data.split('\n')
@@ -413,7 +413,7 @@ def get_map_dimensions(path):
 
 
 def load_map(path):
-    f = open(path + '.txt', 'r')
+    f = open(path + '_1.txt', 'r')
     data = f.read()
     f.close()
     data = data.split('\n')
