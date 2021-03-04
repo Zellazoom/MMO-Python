@@ -36,6 +36,7 @@ graphics = Graphics(graphics_folder, display, FPS)
 
 dirt_img = pygame.image.load(os.path.join(img_folder, 'dirt.png'))
 castle_img = pygame.image.load(os.path.join(img_folder, 'castleCenter.png'))
+portal_img = pygame.image.load(os.path.join(img_folder, 'portal.jpg'))
 item_img = pygame.image.load(os.path.join(img_folder, 'Chest.png')).convert_alpha()
 player_img = graphics.Player.get_model()
 spear_character_img = pygame.image.load(os.path.join(img_folder, 'MainCharacterSpear.png')).convert_alpha()
@@ -224,7 +225,7 @@ def map_item_creator(level):
             item_damage = 0
             item_defense = 0
             item_health = 0
-            item_speed = map
+            item_speed = level
 
         item_length = 10 * level
         item_hit_chance = 0
@@ -245,7 +246,7 @@ def map_item_creator(level):
         item_is_on_ground = True
         item_image = item_img
         item_player_image = None
-        item_magic = ["DAMAGE", 2 * level]
+        item_magic = ["DAMAGE", int(2 * level)]
 
     elif map_drop[6] < rand_int <= map_drop[7]:  # Necklace-------------------------------------------------------------
         item_name = "Necklace"
@@ -419,13 +420,8 @@ def load_map(path):
     temp_game_map = []
     for row in data:
         temp_game_map.append(list(row))
-    temp_game_map = [[int(j) for j in k] for k in temp_game_map]
+    temp_game_map = [[j for j in k] for k in temp_game_map]  # --------------------------------------------------------------
     return temp_game_map
-
-
-game_map_clean = load_map('map')
-game_map = load_map('map')
-map_dimensions = get_map_dimensions('map')
 
 
 def get_pixels_from_chunks(chunks):
@@ -447,15 +443,17 @@ def collision_test(rect, tiles):
 def check_open_square(coordinates):
     x_coord, y_coord = coordinates[0], coordinates[1]
     if x_coord <= map_dimensions[0] and y_coord <= map_dimensions[1]:
-        if game_map[y_coord][x_coord] == 0:
+        if str(game_map[y_coord][x_coord]) == "0":
             return True
-        elif game_map[y_coord][x_coord] == 1:
+        elif str(game_map[y_coord][x_coord]) == "1":
             return False
-        elif game_map[y_coord][x_coord] == 2:
+        elif str(game_map[y_coord][x_coord]) == "2":
             return False
-        elif game_map[y_coord][x_coord] == 3:
+        elif str(game_map[y_coord][x_coord]) == "3":
             return False
-        elif game_map[y_coord][x_coord] == 4:
+        elif str(game_map[y_coord][x_coord]) == "4":
+            return False
+        elif str(game_map[y_coord][x_coord]) == "*":
             return False
     else:
         return False
@@ -523,7 +521,7 @@ def find_enemy_in_area(person):
 def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
     grid = [list(map(str, row)) for row in grid]
     width, height = len(grid[0]), len(grid)
-    wall, clear, player, enemy, item_tile = '1', '0', '2', '3', '4'  # These numbers do not specify what enemy
+    wall, clear, player, enemy, item_tile, portal_tile = '1', '0', '2', '3', '4', '*'  # These numbers do not specify what enemy
     start = (start_1[0], start_1[1])
     queue = collections.deque([[start]])
     seen = {start}
@@ -535,10 +533,15 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
 
         if grid[end[1]][end[0]] == "0":
             for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
-                if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                        grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
+
+                if 0 <= x2 < width and 0 <= y2 < height and \
+                        grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                     queue.append(path + [(x2, y2)])
                     seen.add((x2, y2))
+                # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                #         grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                #     queue.append(path + [(x2, y2)])
+                #     seen.add((x2, y2))
 
         if grid[end[1]][end[0]] == "1":
             return -1
@@ -546,39 +549,81 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
         if grid[end[1]][end[0]] == "2":
             for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
                 if grid[y2][x2] == grid[end[1]][end[0]]:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != enemy and \
-                            grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and \
+                            grid[y2][x2] not in (wall, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
+                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != enemy and \
+                    #         grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    #     queue.append(path + [(x2, y2)])
+                    #     seen.add((x2, y2))
+
+
                 else:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                            grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and \
+                            grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
+                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                    #         grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    #     queue.append(path + [(x2, y2)])
+                    #     seen.add((x2, y2))
 
         if grid[end[1]][end[0]] == "3":
             for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
                 if grid[y2][x2] == grid[end[1]][end[0]]:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                            grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and \
+                            grid[y2][x2] not in (wall, player, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
+                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                    #         grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    #     queue.append(path + [(x2, y2)])
+                    #     seen.add((x2, y2))
                 else:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                            grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and \
+                            grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
+                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                    #         grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    #     queue.append(path + [(x2, y2)])
+                    #     seen.add((x2, y2))
 
         if grid[end[1]][end[0]] == "4":
             for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
                 if grid[y2][x2] == grid[end[1]][end[0]]:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                            grid[y2][x2] != enemy and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and \
+                            grid[y2][x2] not in (wall, player, enemy, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
+                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                    #         grid[y2][x2] != enemy and (x2, y2) not in seen:
+                    #     queue.append(path + [(x2, y2)])
+                    #     seen.add((x2, y2))
                 else:
-                    if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                            grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    if 0 <= x2 < width and 0 <= y2 < height and \
+                            grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
+                        queue.append(path + [(x2, y2)])
+                        seen.add((x2, y2))
+                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                    #         grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
+                    #     queue.append(path + [(x2, y2)])
+                    #     seen.add((x2, y2))
+        if grid[end[1]][end[0]] == "*":
+            for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
+                if grid[y2][x2] == grid[end[1]][end[0]]:
+                    if 0 <= x2 < width and 0 <= y2 < height and \
+                            grid[y2][x2] not in (wall, player, enemy, item_tile) and (x2, y2) not in seen:
+                        queue.append(path + [(x2, y2)])
+                        seen.add((x2, y2))
+                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
+                    #         grid[y2][x2] != enemy and (x2, y2) not in seen:
+                    #     queue.append(path + [(x2, y2)])
+                    #     seen.add((x2, y2))
+                else:
+                    if 0 <= x2 < width and 0 <= y2 < height and \
+                            grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
 
@@ -677,6 +722,23 @@ def shortest_dist_to_item(object_in_game):
     return length_away
 
 
+def shortest_dist_to_portal(object_in_game):
+    list_of_all_items = []
+    for port in portals:
+        path_1 = bfs(game_map_clean, object_in_game.get_position(), port.get_position())
+        list_of_all_items.append([port, len(path_1) - 1])
+
+    sorted_list = sorted(list_of_all_items, key=lambda x_val: x_val[1])
+    if len(sorted_list) != 0:
+        newly_sorted_list = []
+        for lists in sorted_list:
+            newly_sorted_list.append(lists[1])
+        length_away = newly_sorted_list[0] - 1
+    else:
+        length_away = float('inf')
+    return length_away
+
+
 def find_items_by_range(object_in_game):
     list_of_all_items = []
     for item_tile in items:
@@ -721,6 +783,42 @@ def find_item_in_area(person):
         return None
 
 
+def find_portal_in_range(object_in_game, length):
+    list_of_all_items = []
+    for port in portals:
+        path_1 = bfs(game_map_clean, object_in_game.get_position(), port.get_position())
+        if len(path_1) - 1 <= length:
+            list_of_all_items.append([port, len(path_1) - 1])
+        else:
+            pass
+    sorted_list = sorted(list_of_all_items, key=lambda x_val: x_val[1])
+
+    newly_sorted_list = []
+    for lists in sorted_list:
+        newly_sorted_list.append(lists[0])
+
+    return newly_sorted_list
+
+
+def find_portal_in_area(person):
+    # returns an enemy of the opposite side
+    list_of_objects = find_objects_around(person.get_position())
+    for object_in_game in list_of_objects:
+        if isinstance(object_in_game, Portal):
+            return object_in_game
+        else:
+            pass
+    else:
+        return None
+
+
+def teleport(person):
+    if find_portal_in_area(person) is not None:
+        pass
+    else:
+        print("Not able to teleport")
+
+
 def get_list_of_movement(player_pos, path_coords):
     list_of_movement = []
     for coord in path_coords[1:]:
@@ -751,15 +849,18 @@ def if_action_move(game_map_temp, object_in_game):
                     list_of_moving.remove(list_of_moving[0])
                 else:
                     object_in_game.set_action("STAY", object_in_game.get_position())
+                    print("3")
 
             else:
                 object_in_game.set_action("STAY", object_in_game.get_position())
+                print("4")
 
         else:
             print("Bot didn't Move. Invalid location")
 
     else:
         object_in_game.set_action("STAY", object_in_game.get_position())
+        print("5")
 
 
 def attack(attacker, attacked):
@@ -856,17 +957,23 @@ def pickup(person, pickup_item):
     person.get_item(pickup_item)
     pickup_item.set_on_ground(False)
     person.print_inventory()
-    # try:
     items.remove(pickup_item)
     objects.remove(pickup_item)
     person.set_has_new_weapon(True)
-    # finally:
-    #     print("Item is already removed.")
 
 
 def if_action_pickup(object_in_game):
     action, item = object_in_game.get_action()
     pickup(object_in_game, item)
+
+
+def drop(person, dropping_item):
+    person.drop_item(dropping_item)
+
+
+def if_action_drop(object_in_game):
+    action, item = object_in_game.get_action()
+    drop(object_in_game, item)
 
 
 def activate(person, activate_item):
@@ -953,25 +1060,14 @@ def get_player_decision(player):
         player.print_inventory()
 
     elif len(player.get_weapons()) > 3:
-        num_to_drop = len(player.get_weapons()) - 3
-        print("Num to drop = " + str(num_to_drop))
-        player.set_action("STAY", player.get_position())
-        count = 0
-        for weapon in reversed(player.get_weapons()):
-            if count < num_to_drop:
-                player.drop_item(weapon)
-                count += 1
-            else:
-                pass
-
-
+        weapons = player.get_weapons()
+        player.set_action("DROP", weapons[len(weapons)-1])
 
     # This checks if enemies are closer than chest in the area
     elif (str(shortest_dist_to_item(player)) != 'inf' and str(shortest_dist_to_item(player)) != 'inf') and \
             (shortest_dist_to_enemy(player) <= shortest_dist_to_item(player)):
         target = find_enemies_by_range(player)
         player.set_action("MOVE", target[0].get_position())
-
 
     # Checks if there is items and goes for them
     elif len(find_items_by_range(player)) != 0:
@@ -987,12 +1083,9 @@ def get_player_decision(player):
         player.set_action("STAY", player.get_position())
 
     return player.get_action()
-    # except:
-    #     print("Object is dead")
 
 
 def get_enemy_decision(enemy):
-    # try:
     if find_enemy_in_area(enemy) is not None:
         enemy_to_attack = find_enemy_in_area(enemy)
         enemy.set_action("ATTACK", enemy_to_attack)
@@ -1009,9 +1102,10 @@ def get_enemy_decision(enemy):
 
     return enemy.get_action()
 
-    # except:
-    #     print("Object is dead")
 
+game_map_clean = load_map('map')
+game_map = load_map('map')
+map_dimensions = get_map_dimensions('map')
 
 # Set up
 counter = 0
@@ -1019,8 +1113,6 @@ counter_two = 0
 turn_count = 0
 while True:
     display.fill((146, 244, 255))
-    # BOT PROCESS CODE
-    # END BOT PROCESS CODE
 
     # true_scroll[0] += ((player1.get_rect().x + player2.get_rect().x)/2 - true_scroll[0] - 152) / 20
     # true_scroll[1] += ((player1.get_rect().y + player2.get_rect().y)/2 - true_scroll[1] - 106) / 20
@@ -1036,12 +1128,18 @@ while True:
     for layer in game_map_clean:
         x = 0
         for tile in layer:
-            if tile == 0:
-                display.blit(castle_img, (x * 16 - scroll[0], y * 16 - scroll[1]))
-            if tile == 1:
-                display.blit(dirt_img, (x * 16 - scroll[0], y * 16 - scroll[1]))
-            if tile != 0:
-                tile_rectangles.append(pygame.Rect(x * 16, y * 16, 16, 16))
+            try:
+                # print(tile)
+                if int(tile) == 0:
+                    display.blit(castle_img, (x * 16 - scroll[0], y * 16 - scroll[1]))
+                if int(tile) == 1:
+                    display.blit(dirt_img, (x * 16 - scroll[0], y * 16 - scroll[1]))
+                if int(tile) != 0:
+                    tile_rectangles.append(pygame.Rect(x * 16, y * 16, 16, 16))
+            except ValueError:
+                # print("HI")
+                if str(tile) == "*":
+                    display.blit(portal_img, (x * 16 - scroll[0], y * 16 - scroll[1]))
             x += 1
         y += 1
 
@@ -1068,7 +1166,7 @@ while True:
             if isinstance(character, Player):
                 print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(
                     type_of_action) + " : " + str(object_position) + " : " + str(character.get_current_health()))
-                print("PLAYER SPEED: " + str(character.get_speed()))
+                # print("PLAYER SPEED: " + str(character.get_speed()))
 
             turn_range = 1
             if character.get_action()[0] == "MOVE" and character.get_speed() > 1:
@@ -1098,6 +1196,8 @@ while True:
                     if_action_move(game_map, character)
                 elif type_of_action == "PICKUP" and not move_only:
                     if_action_pickup(character)
+                elif type_of_action == "DROP" and not move_only:
+                    if_action_drop(character)
                 elif type_of_action == "EQUIP" and not move_only:
                     if_action_equip(character)
                 elif type_of_action == "ACTIVATE" and not move_only:
