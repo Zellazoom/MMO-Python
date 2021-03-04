@@ -4,6 +4,7 @@ import os
 from player import Player
 from enemy import Enemy
 from item import Item
+from portal import Portal
 from graphics import Graphics
 from pygame.locals import *
 import collections
@@ -27,6 +28,7 @@ img_folder = os.path.join(game_folder, 'images')
 graphics_folder = os.path.join(game_folder, 'Graphics')
 music_folder = os.path.join(game_folder, 'music')
 
+map_level = 1
 # Gets the basic game music going (Commented Cause Im listening to music. Uncomment if forgotten)
 # pygame.mixer.init()
 # pygame.mixer.music.load(os.path.join(music_folder, 'GameMusic_1.mp3'))
@@ -66,7 +68,7 @@ def enemy_values(enemy_type, difficulty):  # enemy_type 1-2 & difficulty 1-3
         enemy_type = 1
     else:
         enemy_type = enemy_type
-    enemy_starting_weapon = enemy_weapon_creator(enemy_type, difficulty, 1)
+    enemy_starting_weapon = enemy_weapon_creator(enemy_type, difficulty, map_level)
     enemy_starting_xp = 0
     enemy_death_xp = 40 * difficulty
     enemy_characteristics = [enemy_identifier, enemy_image, enemy_name, enemy_max_health, enemy_defense, enemy_accuracy,
@@ -110,8 +112,10 @@ def enemy_weapon_creator(enemy_type, difficulty, level):
 
 def map_item_creator(level):
     map_1_drop = [19, 38, 57, 76, 95, 96, 97, 100]
-    map_2_drop = [12, 12, 12, 12, 12, 14, 14, 12]
-    map_3_drop = [10, 10, 10, 10, 10, 20, 20, 10]
+    # map_2_drop = [12, 12, 12, 12, 12, 14, 14, 12]
+    map_2_drop = [12, 24, 36, 48, 60, 74, 88, 100]
+    # map_3_drop = [10, 10, 10, 10, 10, 20, 20, 10]
+    map_3_drop = [10, 20, 30, 40, 50, 70, 90, 100]
     if level == 1:
         map_drop = map_1_drop
     elif level == 2:
@@ -232,7 +236,7 @@ def map_item_creator(level):
         item_is_on_ground = True
         item_image = item_img
         item_player_image = None
-        item_magic = 0
+        item_magic = None
 
     elif map_drop[5] < rand_int <= map_drop[6]:  # Trinkets-------------------------------------------------------------
         item_name = "Trinket"
@@ -283,13 +287,15 @@ def map_item_creator(level):
     return item_to_return
 
 
-def load_new_map(path):
-    f = open(path + '1.txt', 'r')
+def load_new_map(path, level):
+    f = open(path + str(level) + '.txt', 'r')
     data = f.read()
     f.close()
+
     data = data.split('\n')
 
     items_set = []
+    portal_set = []
     enemies_set_1 = []
     enemies_set_2 = []
 
@@ -297,14 +303,15 @@ def load_new_map(path):
     item_count = 0
     enemy1_count = 0
     enemy2_count = 0
+    portal_count = 0
 
-    f = open(path + '_1.txt', 'w')
+    f = open(path + '_' + str(level) + '.txt', 'w')
     f.seek(0, 0)
     for row in data:
         r = 0
         for k in row:
             if str(k) == str(2):
-                new_item = map_item_creator(1)
+                new_item = map_item_creator(map_level)
                 new_item.set_position([r, c])
                 items_set.append(new_item)
                 block = split(row)
@@ -312,6 +319,13 @@ def load_new_map(path):
                 row = block
                 row = ''.join(row)
                 item_count += 1
+
+            if str(k) == "*":
+                portal_new_name = "Portal " + str(map_level)
+                new_portal = Portal(portal_new_name, [r, c], portal_img)
+                portal_set.append(new_portal)
+                row = ''.join(row)
+                portal_count += 1
 
             if str(k) == str(3):
                 values = enemy_values(2, 1)
@@ -343,7 +357,7 @@ def load_new_map(path):
         f.write(str(row) + '\n')
         c += 1
     f.close()
-    return items_set, enemies_set_1, enemies_set_2
+    return items_set, portal_set, enemies_set_1, enemies_set_2
 
 # name, item_type, damage, defense, health, speed, length, hit_chance, is_on_ground, image, player_image, position,
 # magic):
@@ -379,12 +393,14 @@ player1 = Player("Player", player_img, "Andrew", 12, 0, -1, 0, -1, 1, False, [6,
 player2 = Player("Player", player_img, "Yeet",   100, 0,  1, 0,  1, 2, False, [1, 3], None, 201, 20)
 players.append(player2)
 
-items, enemies1, enemies2 = load_new_map('map')
+items, portals, enemies1, enemies2 = load_new_map('map', map_level)
 objects = [player2]
 characters = [player2]
 
 enemies = []
 for i in items:
+    objects.append(i)
+for i in portals:
     objects.append(i)
 for i in enemies1:
     objects.append(i)
@@ -395,13 +411,14 @@ for i in enemies2:
     characters.append(i)
     enemies.append(i)
 
+
 true_scroll = [0, 0]
 speed = 2
 drop_proc = 10
 
 
-def get_map_dimensions(path):
-    f = open(path + '_1.txt', 'r')
+def get_map_dimensions(path, level):
+    f = open(path + '_' + str(level) + '.txt', 'r')
     data = f.read()
     f.close()
     data = data.split('\n')
@@ -412,8 +429,8 @@ def get_map_dimensions(path):
     return map_dim
 
 
-def load_map(path):
-    f = open(path + '_1.txt', 'r')
+def load_map(path, level):
+    f = open(path + "_" + str(level) + '.txt', 'r')
     data = f.read()
     f.close()
     data = data.split('\n')
@@ -533,15 +550,10 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
 
         if grid[end[1]][end[0]] == "0":
             for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
-
                 if 0 <= x2 < width and 0 <= y2 < height and \
                         grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                     queue.append(path + [(x2, y2)])
                     seen.add((x2, y2))
-                # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                #         grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
-                #     queue.append(path + [(x2, y2)])
-                #     seen.add((x2, y2))
 
         if grid[end[1]][end[0]] == "1":
             return -1
@@ -553,21 +565,12 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
                             grid[y2][x2] not in (wall, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
-                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != enemy and \
-                    #         grid[y2][x2] != item_tile and (x2, y2) not in seen:
-                    #     queue.append(path + [(x2, y2)])
-                    #     seen.add((x2, y2))
-
 
                 else:
                     if 0 <= x2 < width and 0 <= y2 < height and \
                             grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
-                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                    #         grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
-                    #     queue.append(path + [(x2, y2)])
-                    #     seen.add((x2, y2))
 
         if grid[end[1]][end[0]] == "3":
             for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
@@ -576,19 +579,13 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
                             grid[y2][x2] not in (wall, player, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
-                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                    #         grid[y2][x2] != item_tile and (x2, y2) not in seen:
-                    #     queue.append(path + [(x2, y2)])
-                    #     seen.add((x2, y2))
+
                 else:
                     if 0 <= x2 < width and 0 <= y2 < height and \
                             grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
-                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                    #         grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
-                    #     queue.append(path + [(x2, y2)])
-                    #     seen.add((x2, y2))
+
 
         if grid[end[1]][end[0]] == "4":
             for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
@@ -597,19 +594,13 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
                             grid[y2][x2] not in (wall, player, enemy, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
-                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                    #         grid[y2][x2] != enemy and (x2, y2) not in seen:
-                    #     queue.append(path + [(x2, y2)])
-                    #     seen.add((x2, y2))
+
                 else:
                     if 0 <= x2 < width and 0 <= y2 < height and \
                             grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
-                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                    #         grid[y2][x2] != enemy and grid[y2][x2] != item_tile and (x2, y2) not in seen:
-                    #     queue.append(path + [(x2, y2)])
-                    #     seen.add((x2, y2))
+
         if grid[end[1]][end[0]] == "*":
             for x2, y2 in ((x_val + 1, y_val), (x_val - 1, y_val), (x_val, y_val + 1), (x_val, y_val - 1)):
                 if grid[y2][x2] == grid[end[1]][end[0]]:
@@ -617,10 +608,7 @@ def bfs(grid, start_1, end):  # takes grid, (x, y), [x,y]
                             grid[y2][x2] not in (wall, player, enemy, item_tile) and (x2, y2) not in seen:
                         queue.append(path + [(x2, y2)])
                         seen.add((x2, y2))
-                    # if 0 <= x2 < width and 0 <= y2 < height and grid[y2][x2] != wall and grid[y2][x2] != player and \
-                    #         grid[y2][x2] != enemy and (x2, y2) not in seen:
-                    #     queue.append(path + [(x2, y2)])
-                    #     seen.add((x2, y2))
+
                 else:
                     if 0 <= x2 < width and 0 <= y2 < height and \
                             grid[y2][x2] not in (wall, player, enemy, item_tile, portal_tile) and (x2, y2) not in seen:
@@ -812,9 +800,55 @@ def find_portal_in_area(person):
         return None
 
 
+def find_portal_by_range(object_in_game):
+    list_of_all_items = []
+    for port in portals:
+        path_1 = bfs(game_map_clean, object_in_game.get_position(), port.get_position())
+        list_of_all_items.append([port, len(path_1) - 1])
+
+    sorted_list = sorted(list_of_all_items, key=lambda x_val: x_val[1])
+
+    newly_sorted_list = []
+    for lists in sorted_list:
+        newly_sorted_list.append(lists[0])
+
+    return newly_sorted_list
+
+
 def teleport(person):
-    if find_portal_in_area(person) is not None:
-        pass
+    person.set_position([1, 1])
+    global map_level, game_map_clean, game_map, map_dimensions, items, portals, enemies1, enemies2, objects, characters,\
+        enemies
+    map_level = 2
+
+    items, portals, enemies1, enemies2 = load_new_map('map', map_level)
+    objects = [player2]
+    characters = [player2]
+
+    enemies = []
+    for t in items:
+        objects.append(t)
+    for t in portals:
+        objects.append(t)
+    for t in enemies1:
+        objects.append(t)
+        characters.append(t)
+        enemies.append(t)
+    for t in enemies2:
+        objects.append(t)
+        characters.append(t)
+        enemies.append(t)
+
+    game_map_clean = load_map('map', map_level)
+    game_map = load_map('map', map_level)
+    map_dimensions = get_map_dimensions('map', map_level)
+
+
+def if_action_teleport(object_in_game):
+    if find_portal_in_area(object_in_game) is not None:
+        teleport(object_in_game)
+        global has_teleported
+        has_teleported = True
     else:
         print("Not able to teleport")
 
@@ -849,18 +883,16 @@ def if_action_move(game_map_temp, object_in_game):
                     list_of_moving.remove(list_of_moving[0])
                 else:
                     object_in_game.set_action("STAY", object_in_game.get_position())
-                    print("3")
 
             else:
                 object_in_game.set_action("STAY", object_in_game.get_position())
-                print("4")
 
         else:
+            pass
             print("Bot didn't Move. Invalid location")
 
     else:
         object_in_game.set_action("STAY", object_in_game.get_position())
-        print("5")
 
 
 def attack(attacker, attacked):
@@ -907,6 +939,8 @@ def if_action_attack(object_in_game):
 
                             items.append(item_from_drop)
                             objects.append(item_from_drop)
+                            [x_drop, y_drop] = attacked.get_position()
+                            game_map[y_drop][x_drop] = "4"
                     else:
                         pass
                 finally:
@@ -936,6 +970,8 @@ def if_action_attack(object_in_game):
 
                             items.append(item_from_drop)
                             objects.append(item_from_drop)
+                            [x_drop, y_drop] = attacked.get_position()
+                            game_map[y_drop][x_drop] = "4"
                     else:
                         pass
                 finally:
@@ -1022,6 +1058,9 @@ def get_player_decision(player):
         item_to_pickup = find_item_in_area(player)
         player.set_action("PICKUP", item_to_pickup)
 
+    elif find_portal_in_area(player) is not None:
+        player.set_action("TELEPORT", 0)
+
     # Equipping first gear
     elif player.get_equipped_weapon() is None and len(player.get_weapons()) != 0:
         item_to_equip = player.get_weapons()[0]
@@ -1079,6 +1118,10 @@ def get_player_decision(player):
         target = find_enemies_by_range(player)
         player.set_action("MOVE", target[0].get_position())
 
+    elif len(find_portal_by_range(player)) != 0:
+        target = find_portal_by_range(player)
+        player.set_action("MOVE", target[0].get_position())
+
     else:
         player.set_action("STAY", player.get_position())
 
@@ -1103,9 +1146,10 @@ def get_enemy_decision(enemy):
     return enemy.get_action()
 
 
-game_map_clean = load_map('map')
-game_map = load_map('map')
-map_dimensions = get_map_dimensions('map')
+game_map_clean = load_map('map', map_level)
+game_map = load_map('map', map_level)
+map_dimensions = get_map_dimensions('map', map_level)
+has_teleported = False
 
 # Set up
 counter = 0
@@ -1113,6 +1157,7 @@ counter_two = 0
 turn_count = 0
 while True:
     display.fill((146, 244, 255))
+    game_loop_normal = True
 
     # true_scroll[0] += ((player1.get_rect().x + player2.get_rect().x)/2 - true_scroll[0] - 152) / 20
     # true_scroll[1] += ((player1.get_rect().y + player2.get_rect().y)/2 - true_scroll[1] - 106) / 20
@@ -1129,7 +1174,6 @@ while True:
         x = 0
         for tile in layer:
             try:
-                # print(tile)
                 if int(tile) == 0:
                     display.blit(castle_img, (x * 16 - scroll[0], y * 16 - scroll[1]))
                 if int(tile) == 1:
@@ -1137,7 +1181,6 @@ while True:
                 if int(tile) != 0:
                     tile_rectangles.append(pygame.Rect(x * 16, y * 16, 16, 16))
             except ValueError:
-                # print("HI")
                 if str(tile) == "*":
                     display.blit(portal_img, (x * 16 - scroll[0], y * 16 - scroll[1]))
             x += 1
@@ -1146,9 +1189,12 @@ while True:
     if counter % FPS == 0:  # Main Decision Code here
         print("-----------------------NEW LOOP-----------------------------")
         for character in characters:
-            # print("updating")
             character.update_self()
         for character in characters:  # For loop after this can double action
+
+            if not game_loop_normal:
+                break
+
             move_only = False
             # Testing speed
             if isinstance(character, Player):
@@ -1160,9 +1206,9 @@ while True:
             # This is just printing player decision for now otherwise it gets cluttered
             object_position = character.get_position()
             type_of_action, value = character.get_action()
-            # print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(character.get_rank()) +
-            # " : " + str(character.get_xp()) + " : " + str(turn_count) + " : " + str(type_of_action)  + " : " +
-            # str(object_position)+ " : " + str(character.get_current_health()))
+            # print(character.get_name() + " : " + str(type_of_action)  + " : " + str(object_position) + " : " +
+            # str(character.get_current_health()))
+
             if isinstance(character, Player):
                 print(character.get_name() + " : " + str(character.get_defense()) + " : " + str(
                     type_of_action) + " : " + str(object_position) + " : " + str(character.get_current_health()))
@@ -1202,10 +1248,21 @@ while True:
                     if_action_equip(character)
                 elif type_of_action == "ACTIVATE" and not move_only:
                     if_action_activate(character)
+                elif type_of_action == "TELEPORT" and not move_only:
+                    if_action_teleport(character)
+                    if has_teleported:
+                        game_loop_normal = False
+                        has_teleported = False
+                        break
+                    else:
+                        pass
                 else:
                     pass
 
-                game_map = load_map('map')
+                if not game_loop_normal:
+                    break
+
+                game_map = load_map('map', map_level)
                 if isinstance(character, Player):
                     if character.is_dead:
                         players.remove(character)
@@ -1215,7 +1272,7 @@ while True:
                         display.blit(character.get_image(),
                                      (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
                         new_x, new_y = character.get_position()
-                        game_map[new_y][new_x] = 2
+                        game_map[new_y][new_x] = "2"
 
                 if isinstance(character, Enemy):
                     if character.is_dead:
@@ -1226,22 +1283,17 @@ while True:
                         display.blit(character.get_image(),
                                      (character.get_rect().x - scroll[0], character.get_rect().y - scroll[1]))
                         new_x, new_y = character.get_position()
-                        game_map[new_y][new_x] = 3
+                        game_map[new_y][new_x] = "3"
 
                 for item_box in items:
                     if item_box.on_ground():
                         display.blit(item_box.get_image(),
                                      (item_box.get_rect().x - scroll[0], item_box.get_rect().y - scroll[1]))
                         new_x, new_y = item_box.get_position()
-                        game_map[new_y][new_x] = 4
+                        game_map[new_y][new_x] = "4"
                     else:
                         items.remove(item_box)
                         objects.remove(item_box)
-                        # try:
-                        #     items.remove(item)
-                        #     objects.remove(item)
-                        # except Exception as e:
-                        #     print(exception(e))
 
                 for all_objects in objects:
                     display.blit(all_objects.get_image(),

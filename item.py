@@ -33,6 +33,7 @@ class Item(pygame.sprite.Sprite):
 
     def get_damage(self):
         magic_damage = 0
+        print(str(self.magic) + "------------COMPUTING_DAMAGE------------")
         if self.magic is not None and self.magic[0] == "DAMAGE":
             magic_damage = self.magic[1]
         return self.damage + magic_damage
